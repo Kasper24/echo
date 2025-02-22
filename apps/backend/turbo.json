@@ -1,0 +1,44 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "env": [
+        "NODE_ENV",
+        "EXPRESS_ENV",
+        "PORT",
+        "CORS_ORIGIN",
+        "POSTGRES_URL",
+        "POSTGRES_HOST",
+        "POSTGRES_PORT",
+        "POSTGRES_DATABASE",
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_POOL_MAX_SIZE",
+        "POSTGRES_IDLE_TIMEOUT_IN_MS",
+        "POSTGRES_CONN_TIMEOUT_IN_MS",
+        "REDIS_URL",
+        "REDIS_HOST",
+        "REDIS_PORT",
+        "REDIS_USER",
+        "REDIS_PASSWORD",
+        "REDIS_SECRET",
+        "REDIS_MAX_CONNECTION_RETRY",
+        "REDIS_MIN_CONNECTION_DELAY_IN_MS",
+        "REDIS_MAX_CONNECTION_DELAY_IN_MS",
+        "JWT_KEY",
+        "JWT_REFRESH_TOKEN_SECRET",
+        "JWT_ACCESS_TOKEN_SECRET",
+        "JWT_ACCESS_TOKEN_EXPIRY",
+        "JWT_REFRESH_TOKEN_EXPIRY",
+        "JWT_REFRESH_TOKEN_MAX_AGE",
+        "TWILIO_ACCOUNT_SID",
+        "TWILIO_AUTH_TOKEN",
+        "TWILIO_PHONE_NUMBER",
+        "WINDOW_SIZE_IN_MINUTES",
+        "MAX_NUMBER_OF_REQUESTS_PER_WINDOW_SIZE"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local"],
+      "outputs": ["dist/**"]
+    }
+  }
+}

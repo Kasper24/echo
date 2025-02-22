@@ -1,0 +1,43 @@
+{
+  "name": "kitchen-sink",
+  "private": true,
+  "packageManager": "npm@10.9.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "build": "turbo run build",
+    "clean": "turbo run clean",
+    "dev": "turbo run dev",
+    "test": "turbo run test",
+    "lint:types": "turbo run lint:types",
+    "lint:check": "turbo run lint:check",
+    "lint:fix": "turbo run lint:fix",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,css,yaml}\"",
+    "format:write": "prettier --write \"**/*.{ts,tsx,js,css,yaml}\""
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "npm run lint:fix"
+    ],
+    "*.{js,jsx,ts,tsx,md,html,css}": [
+      "npm run format:write"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
+    "prettier": "^3.5.0",
+    "turbo": "^2.4.2"
+  }
+}
