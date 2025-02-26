@@ -1,5 +1,4 @@
 import { Router } from "express";
-import asyncHandler from "@repo/backend/middlewares/async";
 import validateHandler from "@repo/backend/middlewares/validation";
 import {
   sendOtpController,
@@ -15,24 +14,20 @@ import {
 
 const authRouter = Router();
 
-authRouter.post(
-  "/send-otp",
-  validateHandler(sendOtpSchema),
-  asyncHandler(sendOtpController)
-);
+authRouter.post("/send-otp", validateHandler(sendOtpSchema), sendOtpController);
 
 authRouter.post(
   "/verify-otp",
   validateHandler(verifyOtpSchema),
-  asyncHandler(verifyOtpController)
+  verifyOtpController
 );
 
 authRouter.get(
   "/refresh-token",
   validateHandler(refreshTokenSchema),
-  asyncHandler(refreshTokenController)
+  refreshTokenController
 );
 
-authRouter.get("/logout", asyncHandler(logoutController));
+authRouter.get("/logout", logoutController);
 
 export default authRouter;
