@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { relations } from "drizzle-orm";
 import {
   pgTable,
@@ -9,8 +8,14 @@ import {
   timestamp,
   boolean,
   uuid,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 
+const friendStatusEnum = pgEnum("friend_status", [
+  "pending",
+  "accepted",
+  "denied",
+]);
 export const chatTypeEnum = pgEnum("chat_type", ["direct", "group"]);
 export const userRoleEnum = pgEnum("user_role", ["admin", "user"]);
 export const messageStatusEnum = pgEnum("message_status", [
@@ -18,6 +23,11 @@ export const messageStatusEnum = pgEnum("message_status", [
   "delivered",
   "read",
 ]);
+
+const base = pgTable("base", {
+  createdAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp().notNull().defaultNow(),
+});
 
 export const users = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -57,6 +67,43 @@ export const refreshTokens = pgTable("refresh_tokens", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
   token: text().notNull().unique(),
+});
+
+export const friends = pgTable(
+  "friends",
+  {
+    userA: integer()
+      .notNull()
+      .references(() => users.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userB: integer()
+      .notNull()
+      .references(() => users.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    status: friendStatusEnum().notNull().default("pending"),
+  },
+  (table) => [primaryKey({ columns: [table.userA, table.userB] })]
+);
+
+export const blockedUsers = pgTable("blocked_users", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  blockerId: integer()
+    .notNull()
+    .references(() => users.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  blockedId: integer()
+    .notNull()
+    .references(() => users.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+  createdAt: timestamp().notNull().defaultNow(),
 });
 
 export const chats = pgTable("chats", {
@@ -119,6 +166,9 @@ export const messageReadReceipts = pgTable("message_read_receipts", {
 export const usersRealtions = relations(users, ({ one, many }) => ({
   userPrivacySettings: one(userPrivacySettings),
   chats: many(chats),
+  friendRequests: many(friendRequests),
+  friends: many(friends),
+  blockedUsers: many(blockedUsers),
   sentMessages: many(messages, { relationName: "sender" }),
   receivedMessages: many(messages, { relationName: "receiver" }),
   chatParticipants: many(chatParticipants),
@@ -130,6 +180,35 @@ export const userPrivacySettingsRelations = relations(
     user: one(users, {
       fields: [userPrivacySettings.userId],
       references: [users.id],
+    }),
+  })
+);
+
+export const friendsRealtions = relations(friends, ({ one, many }) => ({
+  userA: one(users, {
+    fields: [friends.userA],
+    references: [users.id],
+    relationName: "userA",
+  }),
+  userB: one(users, {
+    fields: [friends.userB],
+    references: [users.id],
+    relationName: "userB",
+  }),
+}));
+
+export const blockedUsersRelations = relations(
+  blockedUsers,
+  ({ one, many }) => ({
+    blocker: one(users, {
+      fields: [blockedUsers.blockerId],
+      references: [users.id],
+      relationName: "blocker",
+    }),
+    blocked: one(users, {
+      fields: [blockedUsers.blockedId],
+      references: [users.id],
+      relationName: "blocked",
     }),
   })
 );
