@@ -4,8 +4,8 @@
   "type": "module",
   "private": true,
   "exports": {
-    ".": "./src/index.js",
-    "./schema": "./src/schema.js"
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts"
   },
   "scripts": {
     "dev": "tsx watch --env-file=.env ./src/index.ts",
