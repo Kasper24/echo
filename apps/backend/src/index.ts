@@ -1,7 +1,7 @@
 import { createServer } from "@repo/backend/server";
-import { redisConnect } from "@repo/backend/database/redis";
+import { redisConnect } from "@repo/backend/redis";
 import envValidate from "@repo/backend/config";
-import { dbTestConnection } from "./database";
+import { dbTestConnection } from "@repo/database";
 
 await envValidate();
 await dbTestConnection();

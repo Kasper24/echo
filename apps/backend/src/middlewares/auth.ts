@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthError } from "@repo/backend/utils/errors";
 import { jwtVerifyAccessToken } from "@repo/backend/utils/jwt";
-import { User, users } from "@repo/backend/database/schema";
-import { db } from "@repo/backend/database";
+import { User, users } from "@repo/database/schema";
+import { db } from "@repo/database";
 import { eq } from "drizzle-orm";
 
 export interface AuthenticatedRequest extends Request {
