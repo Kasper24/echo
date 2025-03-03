@@ -4,11 +4,11 @@
   "type": "module",
   "private": true,
   "exports": {
-    ".": "./src/index.js",
-    "./schema": "./src/schema.js"
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts"
   },
   "scripts": {
-    "dev": "tsx watch --env-file=.env ./src/index.ts",
+    "dev": "docker compose up",
     "lint:types": "tsc --noEmit",
     "lint:check": "eslint --max-warnings=0 \"src/**/*.{js,jsx,ts,tsx,json}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx,json}\"",

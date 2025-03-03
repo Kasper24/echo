@@ -1,4 +1,4 @@
-name: echo
+name: database
 
 services:
   postgres:
@@ -11,10 +11,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    environment:
-      - POSTGRES_DB=echo
-      - POSTGRES_USER=echo
-      - POSTGRES_PASSWORD=echo
+    env_file:
+      - .env
     ports:
       - "5432:5432"
 
