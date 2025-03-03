@@ -20,16 +20,16 @@
     "preset": "@repo/jest-presets/node"
   },
   "dependencies": {
+    "@repo/database": "*",
     "argon2": "^0.41.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "drizzle-orm": "^0.39.3",
+    "drizzle-orm": "^0.40.0",
     "express": "^5.0.1",
     "express-rate-limit": "^7.5.0",
     "http-status-codes": "^2.3.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
-    "pg": "^8.13.3",
     "redis": "^4.7.0",
     "twilio": "^5.4.5",
     "zod": "^3.24.2"
@@ -45,9 +45,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/morgan": "^1.9.9",
     "@types/node": "^22.13.5",
-    "@types/pg": "^8.11.11",
     "@types/supertest": "^6.0.2",
-    "drizzle-kit": "^0.30.4",
     "eslint": "^9.20.0",
     "jest": "^29.7.0",
     "supertest": "^7.0.0",

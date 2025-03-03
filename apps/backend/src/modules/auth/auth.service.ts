@@ -2,8 +2,8 @@ import argon2 from "argon2";
 import crypto from "crypto";
 import twilio from "twilio";
 import { eq } from "drizzle-orm";
-import { db } from "@repo/backend/database";
-import { otps, refreshTokens, users } from "@repo/backend/database/schema";
+import { db } from "@repo/database";
+import { otps, refreshTokens, users } from "@repo/database/schema";
 import { AuthError } from "@repo/backend/utils/errors";
 import {
   jwtSignAccessToken,
