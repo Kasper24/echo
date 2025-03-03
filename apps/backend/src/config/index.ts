@@ -5,7 +5,7 @@ const environmentVariableSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
 
   PORT: z.coerce.number().positive().int().default(5000),
-  // PORT: z.number().positive().int().default(5000),
+  
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
 
   // Postgres
