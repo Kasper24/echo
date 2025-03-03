@@ -6,6 +6,7 @@ import {
   timestamp,
   boolean,
 } from "drizzle-orm/pg-core";
+import { timeStamps } from "./base";
 
 export const users = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -15,7 +16,7 @@ export const users = pgTable("users", {
   about: text().default("Hello, I'm a new user!"),
   status: boolean().notNull().default(false),
   lastSeen: timestamp().notNull().defaultNow(),
-  createdAt: timestamp().notNull().defaultNow(),
+  ...timeStamps(false),
 });
 
 export const userPrivacySettings = pgTable("user_privacy_settings", {
@@ -30,6 +31,7 @@ export const userPrivacySettings = pgTable("user_privacy_settings", {
   showOnlineStatus: boolean().notNull().default(true),
   showLastSeen: boolean().notNull().default(true),
   showReadReceipts: boolean().notNull().default(true),
+  ...timeStamps(false),
 });
 
 export type NewUser = typeof users.$inferInsert;

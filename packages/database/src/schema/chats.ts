@@ -1,4 +1,5 @@
 import { pgTable, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { timeStamps } from "./base";
 
 export const chats = pgTable("chats", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -6,8 +7,7 @@ export const chats = pgTable("chats", {
   name: text().unique().notNull(),
   description: text().notNull(),
   picture: text().notNull(),
-  createdAt: timestamp().defaultNow().notNull(),
-  updatedAt: timestamp().defaultNow().notNull(),
+  ...timeStamps(false),
 });
 
 export const chatParticipants = pgTable("chat_participants", {
@@ -20,6 +20,7 @@ export const chatParticipants = pgTable("chat_participants", {
     .notNull(),
   role: userRoleEnum().notNull().default("user"),
   joinedAt: timestamp().notNull().defaultNow(),
+  ...timeStamps(false),
 });
 
 export type NewChat = typeof chats.$inferInsert;

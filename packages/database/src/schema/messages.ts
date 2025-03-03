@@ -1,4 +1,5 @@
 import { pgTable, integer, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { timeStamps } from "./base";
 
 export const messages = pgTable("messages", {
   id: uuid().defaultRandom(),
@@ -16,8 +17,7 @@ export const messages = pgTable("messages", {
     }),
   content: text().notNull(),
   sentAt: timestamp().notNull().defaultNow(),
-  createdAt: timestamp().notNull().defaultNow(),
-  updatedAt: timestamp().defaultNow(),
+  ...timeStamps(false),
 });
 
 export const messageReadReceipts = pgTable("message_read_receipts", {
@@ -33,6 +33,7 @@ export const messageReadReceipts = pgTable("message_read_receipts", {
     .notNull(),
   readAt: timestamp(),
   status: messageStatusEnum().notNull().default("sent"),
+  ...timeStamps(false),
 });
 
 export type NewMessage = typeof messages.$inferInsert;

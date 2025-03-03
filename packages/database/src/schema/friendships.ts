@@ -1,6 +1,7 @@
-import { pgTable, integer, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, integer, primaryKey } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { friendStatusEnum } from "./enums";
+import { timeStamps } from "./base";
 
 export const friends = pgTable(
   "friends",
@@ -18,6 +19,7 @@ export const friends = pgTable(
         onUpdate: "cascade",
       }),
     status: friendStatusEnum().notNull().default("pending"),
+    ...timeStamps(false),
   },
   (table) => [primaryKey({ columns: [table.userA, table.userB] })]
 );
@@ -36,7 +38,7 @@ export const blockedUsers = pgTable("blocked_users", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  createdAt: timestamp().notNull().defaultNow(),
+  ...timeStamps(false),
 });
 
 export type NewFriend = typeof friends.$inferInsert;
