@@ -7,18 +7,25 @@
     "start": "node dist/index.js",
     "dev": "tsx watch --env-file=.env ./src/index.ts",
     "build": "tsc",
-    "test": "jest --detectOpenHandles",
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --detectOpenHandles",
     "lint:types": "tsc --noEmit",
     "lint:check": "eslint --max-warnings=0 \"src/**/*.{js,jsx,ts,tsx,json}\"",
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx,json}\""
   },
   "jest": {
     "preset": "@repo/jest-presets/node",
+    "testPathIgnorePatterns": [
+      "<rootDir>/src/__tests__/setup.ts"
+    ],
+    "moduleNameMapper": {
+      "^@repo/backend/(.*)$": "<rootDir>/src/$1"
+    },
     "setupFilesAfterEnv": [
       "<rootDir>/src/__tests__/setup.ts"
     ]
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.2.17",
     "@repo/database": "*",
     "argon2": "^0.41.1",
     "cookie-parser": "^1.4.7",
