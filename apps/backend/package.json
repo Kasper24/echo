@@ -13,7 +13,10 @@
     "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx,json}\""
   },
   "jest": {
-    "preset": "@repo/jest-presets/node"
+    "preset": "@repo/jest-presets/node",
+    "setupFilesAfterEnv": [
+      "<rootDir>/src/__tests__/setup.ts"
+    ]
   },
   "dependencies": {
     "@repo/database": "*",
