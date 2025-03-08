@@ -10,29 +10,26 @@
     "node": ">=18"
   },
   "scripts": {
+    "lint-staged": "lint-staged",
     "prepare": "husky",
     "build": "turbo run build",
     "clean": "turbo run clean",
     "dev": "turbo run dev",
     "test": "turbo run test",
     "lint:types": "turbo run lint:types",
-    "lint:check": "turbo run lint:check",
-    "lint:fix": "turbo run lint:fix",
+    "lint:check": "turbo run lint:check --",
+    "lint:fix": "turbo run lint:fix --",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,css,yaml}\"",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,css,yaml}\""
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
-      "npm run lint:fix"
+      "npm run lint:check",
+      "npm run test"
     ],
     "*.{js,jsx,ts,tsx,md,html,css}": [
-      "npm run format:write"
+      "npm run format:check"
     ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   },
   "devDependencies": {
     "husky": "^9.1.7",
