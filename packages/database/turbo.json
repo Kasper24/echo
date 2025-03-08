@@ -1,0 +1,38 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "db:generate": {
+      "env": [
+        "POSTGRES_URL",
+        "POSTGRES_HOST",
+        "POSTGRES_PORT",
+        "POSTGRES_DATABASE",
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local"]
+    },
+    "db:migrate": {
+      "env": [
+        "POSTGRES_URL",
+        "POSTGRES_HOST",
+        "POSTGRES_PORT",
+        "POSTGRES_DATABASE",
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local"]
+    },
+    "db:push": {
+      "env": [
+        "POSTGRES_URL",
+        "POSTGRES_HOST",
+        "POSTGRES_PORT",
+        "POSTGRES_DATABASE",
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD"
+      ],
+      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local"]
+    }
+  }
+}
