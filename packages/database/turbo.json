@@ -9,8 +9,7 @@
         "POSTGRES_DATABASE",
         "POSTGRES_USER",
         "POSTGRES_PASSWORD"
-      ],
-      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local"]
+      ]
     },
     "db:migrate": {
       "env": [
@@ -20,8 +19,7 @@
         "POSTGRES_DATABASE",
         "POSTGRES_USER",
         "POSTGRES_PASSWORD"
-      ],
-      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local"]
+      ]
     },
     "db:push": {
       "env": [
@@ -31,8 +29,7 @@
         "POSTGRES_DATABASE",
         "POSTGRES_USER",
         "POSTGRES_PASSWORD"
-      ],
-      "inputs": ["$TURBO_DEFAULT$", ".env", ".env.local"]
+      ]
     }
   }
 }
