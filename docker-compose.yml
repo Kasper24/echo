@@ -1,0 +1,44 @@
+name: echo
+
+networks:
+  echo:
+
+volumes:
+  database:
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: echo_postgres
+    restart: unless-stopped
+    profiles: ["postgres"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE:-echo}
+      - POSTGRES_USER=${POSTGRES_USER:-echo}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-echo}
+    networks:
+      - echo
+    volumes:
+      - database:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+    container_name: echo_redis
+    restart: unless-stopped
+    profiles: ["redis"]
+    environment:
+      - REDIS_USER=${REDIS_USER:-echo}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-echo}
+    networks:
+      - echo
+    ports:
+      - "6379:6379"
+
