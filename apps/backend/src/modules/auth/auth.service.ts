@@ -83,30 +83,41 @@ const verifyOtp = async (phoneNumber: string, otp: string) => {
 };
 
 const refreshAccessToken = async (refreshToken: string) => {
-  const { userId } = jwtVerifyRefreshToken(refreshToken);
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-  });
-  if (!user) throw new AuthError("Invalid refresh token.");
+  try {
+    const { userId } = jwtVerifyRefreshToken(refreshToken);
+    if (!userId) throw new AuthError("Invalid refresh token");
 
-  const storedToken = await db.query.refreshTokens.findFirst({
-    where: eq(refreshTokens.userId, userId),
-  });
-  if (!storedToken) throw new AuthError("Invalid refresh token.");
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+    if (!user) throw new AuthError("Invalid refresh token");
 
-  const isTokenValid = await argon2.verify(storedToken.token, refreshToken);
-  if (!isTokenValid) {
-    throw new AuthError("Invalid refresh token.");
+    const storedToken = await db.query.refreshTokens.findFirst({
+      where: eq(refreshTokens.userId, userId),
+    });
+    if (!storedToken) throw new AuthError("Invalid refresh token");
+
+    const isTokenValid = await argon2.verify(storedToken.token, refreshToken);
+    if (!isTokenValid) {
+      throw new AuthError("Invalid refresh token");
+    }
+
+    return jwtSignAccessToken({ userId: user.id });
+  } catch (error) {
+    if (error instanceof Error) throw new AuthError(error.message);
+    else throw new AuthError("Invalid refresh token");
   }
-
-  return jwtSignAccessToken({ userId: user.id });
 };
 
 const logout = async (refreshToken: string) => {
-  const { userId } = jwtVerifyRefreshToken(refreshToken);
-  if (!userId) return;
+  try {
+    const { userId } = jwtVerifyRefreshToken(refreshToken);
+    if (!userId) return;
 
-  await db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
+    await db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
+  } catch {
+    return;
+  }
 };
 
 export { sendOtp, verifyOtp, refreshAccessToken, logout };
