@@ -5,7 +5,7 @@ const environmentVariableSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]),
 
   PORT: z.coerce.number().positive().int().default(5000),
-  
+
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
 
   // Postgres
@@ -39,7 +39,11 @@ const environmentVariableSchema = z.object({
     .optional(),
 
   //JWT
-  JWT_KEY: z.string().trim().min(1).default("jwt"),
+  JWT_REFRESH_TOKEN_COOKIE_KEY: z
+    .string()
+    .trim()
+    .min(1)
+    .default("refreshToken"),
   JWT_REFRESH_TOKEN_SECRET: z.string().trim().min(1).default("secret"),
   JWT_ACCESS_TOKEN_SECRET: z.string().trim().min(1).default("secret"),
   JWT_ACCESS_TOKEN_EXPIRY: z

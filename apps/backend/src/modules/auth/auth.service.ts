@@ -20,13 +20,17 @@ const sendOtp = async (phoneNumber: string) => {
   const otp = crypto.randomInt(100000, 999999).toString().slice(0, 6);
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-  await db.delete(otps).where(eq(otps.phoneNumber, phoneNumber));
-
-  await db.insert(otps).values({
-    phoneNumber,
-    otp,
-    expiresAt,
-  });
+  await db
+    .insert(otps)
+    .values({
+      phoneNumber,
+      otp,
+      expiresAt,
+    })
+    .onConflictDoUpdate({
+      target: otps.phoneNumber, // The unique constraint column
+      set: { otp, expiresAt, updatedAt: new Date() },
+    });
 
   await twilioClient.messages.create({
     body: `Your OTP is: ${otp}`,
@@ -47,8 +51,6 @@ const verifyOtp = async (phoneNumber: string, otp: string) => {
   ) {
     throw new AuthError("OTP expired or invalid.");
   }
-
-  await db.delete(otps).where(eq(otps.phoneNumber, phoneNumber));
 
   let user = await db.query.users.findFirst({
     where: eq(users.phoneNumber, phoneNumber),
@@ -81,30 +83,41 @@ const verifyOtp = async (phoneNumber: string, otp: string) => {
 };
 
 const refreshAccessToken = async (refreshToken: string) => {
-  const { userId } = jwtVerifyRefreshToken(refreshToken);
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-  });
-  if (!user) throw new AuthError("Invalid refresh token.");
+  try {
+    const { userId } = jwtVerifyRefreshToken(refreshToken);
+    if (!userId) throw new AuthError("Invalid refresh token");
 
-  const storedToken = await db.query.refreshTokens.findFirst({
-    where: eq(refreshTokens.userId, userId),
-  });
-  if (!storedToken) throw new AuthError("Invalid refresh token.");
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+    });
+    if (!user) throw new AuthError("Invalid refresh token");
 
-  const isTokenValid = await argon2.verify(storedToken.token, refreshToken);
-  if (!isTokenValid) {
-    throw new AuthError("Invalid refresh token.");
+    const storedToken = await db.query.refreshTokens.findFirst({
+      where: eq(refreshTokens.userId, userId),
+    });
+    if (!storedToken) throw new AuthError("Invalid refresh token");
+
+    const isTokenValid = await argon2.verify(storedToken.token, refreshToken);
+    if (!isTokenValid) {
+      throw new AuthError("Invalid refresh token");
+    }
+
+    return jwtSignAccessToken({ userId: user.id });
+  } catch (error) {
+    if (error instanceof Error) throw new AuthError(error.message);
+    else throw new AuthError("Invalid refresh token");
   }
-
-  return jwtSignAccessToken({ userId: user.id });
 };
 
 const logout = async (refreshToken: string) => {
-  const { userId } = jwtVerifyRefreshToken(refreshToken);
-  if (!userId) return;
+  try {
+    const { userId } = jwtVerifyRefreshToken(refreshToken);
+    if (!userId) return;
 
-  await db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
+    await db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
+  } catch {
+    return;
+  }
 };
 
 export { sendOtp, verifyOtp, refreshAccessToken, logout };

@@ -14,7 +14,7 @@ const verifyOtpSchema = sendOtpSchema.extend({
 
 const refreshTokenSchema = z.object({
   cookies: z.object({
-    refreshToken: z.string().min(1).max(100),
+    refreshToken: z.string().min(1),
   }),
 });
 

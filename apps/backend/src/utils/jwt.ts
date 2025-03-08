@@ -1,8 +1,5 @@
-import jwt, { type JwtPayload } from "jsonwebtoken";
-
-interface TokenPayload extends JwtPayload {
-  userId: number;
-}
+import jwt from "jsonwebtoken";
+import { TokenPayload } from "@repo/backend/modules/auth/auth.types";
 
 const jwtSignAccessToken = (payload: TokenPayload) => {
   return jwt.sign(payload, process.env.JWT_ACCESS_TOKEN_SECRET, {
