@@ -10,6 +10,7 @@
     "node": ">=18"
   },
   "scripts": {
+    "lint-staged": "lint-staged",
     "prepare": "husky",
     "build": "turbo run build",
     "clean": "turbo run clean",
