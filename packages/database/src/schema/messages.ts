@@ -5,7 +5,7 @@ import { users } from "./users";
 import { messageStatusEnum } from "./enums";
 
 export const messages = pgTable("messages", {
-  id: uuid().defaultRandom(),
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
   chatId: integer()
     .notNull()
     .references(() => chats.id, {
