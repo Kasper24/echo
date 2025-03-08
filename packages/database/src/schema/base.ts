@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import { timestamp } from "drizzle-orm/pg-core";
 
 const timeStamps = (softDelete = false) => {

@@ -258,7 +258,6 @@ describe("Auth API", () => {
         .returning();
 
       const refreshToken = jwtSignRefreshToken({ userId: user[0].id });
-      const hashedToken = await argon2.hash(refreshToken);
       await db.insert(refreshTokens).values({
         userId: user[0].id,
         token: "invalidToken",

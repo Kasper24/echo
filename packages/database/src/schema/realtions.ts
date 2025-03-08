@@ -14,7 +14,7 @@ export const usersRealtions = relations(users, ({ one, many }) => ({
 
 export const userPrivacySettingsRelations = relations(
   userPrivacySettings,
-  ({ one, many }) => ({
+  ({ one }) => ({
     user: one(users, {
       fields: [userPrivacySettings.userId],
       references: [users.id],
@@ -22,7 +22,7 @@ export const userPrivacySettingsRelations = relations(
   })
 );
 
-export const friendsRealtions = relations(friends, ({ one, many }) => ({
+export const friendsRealtions = relations(friends, ({ one }) => ({
   userA: one(users, {
     fields: [friends.userA],
     references: [users.id],
@@ -35,30 +35,27 @@ export const friendsRealtions = relations(friends, ({ one, many }) => ({
   }),
 }));
 
-export const blockedUsersRelations = relations(
-  blockedUsers,
-  ({ one, many }) => ({
-    blocker: one(users, {
-      fields: [blockedUsers.blockerId],
-      references: [users.id],
-      relationName: "blocker",
-    }),
-    blocked: one(users, {
-      fields: [blockedUsers.blockedId],
-      references: [users.id],
-      relationName: "blocked",
-    }),
-  })
-);
+export const blockedUsersRelations = relations(blockedUsers, ({ one }) => ({
+  blocker: one(users, {
+    fields: [blockedUsers.blockerId],
+    references: [users.id],
+    relationName: "blocker",
+  }),
+  blocked: one(users, {
+    fields: [blockedUsers.blockedId],
+    references: [users.id],
+    relationName: "blocked",
+  }),
+}));
 
-export const chatsRelations = relations(chats, ({ one, many }) => ({
+export const chatsRelations = relations(chats, ({ many }) => ({
   chatParticipants: many(chatParticipants),
   messages: many(messages),
 }));
 
 export const chatParticipantsRelations = relations(
   chatParticipants,
-  ({ one, many }) => ({
+  ({ one }) => ({
     user: one(users, {
       fields: [chatParticipants.userId],
       references: [users.id],
@@ -70,7 +67,7 @@ export const chatParticipantsRelations = relations(
   })
 );
 
-export const messagesRelations = relations(messages, ({ one, many }) => ({
+export const messagesRelations = relations(messages, ({ one }) => ({
   sender: one(users, {
     fields: [messages.senderId],
     references: [users.id],
@@ -84,7 +81,7 @@ export const messagesRelations = relations(messages, ({ one, many }) => ({
 
 export const messageReadReceiptsRelations = relations(
   messageReadReceipts,
-  ({ one, many }) => ({
+  ({ one }) => ({
     chat: one(chats, {
       fields: [messageReadReceipts.chatId],
       references: [chats.id],
