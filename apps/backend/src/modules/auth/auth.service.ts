@@ -20,13 +20,17 @@ const sendOtp = async (phoneNumber: string) => {
   const otp = crypto.randomInt(100000, 999999).toString().slice(0, 6);
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-  await db.delete(otps).where(eq(otps.phoneNumber, phoneNumber));
-
-  await db.insert(otps).values({
-    phoneNumber,
-    otp,
-    expiresAt,
-  });
+  await db
+    .insert(otps)
+    .values({
+      phoneNumber,
+      otp,
+      expiresAt,
+    })
+    .onConflictDoUpdate({
+      target: otps.phoneNumber, // The unique constraint column
+      set: { otp, expiresAt, updatedAt: new Date() },
+    });
 
   await twilioClient.messages.create({
     body: `Your OTP is: ${otp}`,
@@ -47,8 +51,6 @@ const verifyOtp = async (phoneNumber: string, otp: string) => {
   ) {
     throw new AuthError("OTP expired or invalid.");
   }
-
-  await db.delete(otps).where(eq(otps.phoneNumber, phoneNumber));
 
   let user = await db.query.users.findFirst({
     where: eq(users.phoneNumber, phoneNumber),
