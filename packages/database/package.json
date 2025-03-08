@@ -10,8 +10,8 @@
   "scripts": {
     "dev": "docker compose up",
     "lint:types": "tsc --noEmit",
-    "lint:check": "eslint --max-warnings=0 \"src/**/*.{js,jsx,ts,tsx,json}\"",
-    "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx,json}\"",
+    "lint:check": "eslint --max-warnings=0",
+    "lint:fix": "eslint --fix",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
