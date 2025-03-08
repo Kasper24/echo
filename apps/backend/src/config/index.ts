@@ -50,7 +50,7 @@ const environmentVariableSchema = z.object({
     .string()
     .regex(
       /^\d+[smhd]$/,
-      "Invalid JWT expiry format. Use formats like '15m', '1h', '7d'."
+      "Invalid JWT expiry format. Use formats like '15m', '1h', '7d'.",
     )
     .transform((val) => val as `${number}${"s" | "m" | "h" | "d"}`)
     .default("15m"),
@@ -58,7 +58,7 @@ const environmentVariableSchema = z.object({
     .string()
     .regex(
       /^\d+[smhd]$/,
-      "Invalid JWT expiry format. Use formats like '15m', '1h', '7d'."
+      "Invalid JWT expiry format. Use formats like '15m', '1h', '7d'.",
     )
     .transform((val) => val as `${number}${"s" | "m" | "h" | "d"}`)
     .default("7d"),

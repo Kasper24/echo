@@ -19,13 +19,13 @@ authRouter.post("/send-otp", validateHandler(sendOtpSchema), sendOtpController);
 authRouter.post(
   "/verify-otp",
   validateHandler(verifyOtpSchema),
-  verifyOtpController
+  verifyOtpController,
 );
 
 authRouter.get(
   "/refresh-token",
   validateHandler(refreshTokenSchema),
-  refreshTokenController
+  refreshTokenController,
 );
 
 authRouter.get("/logout", logoutController);

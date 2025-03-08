@@ -30,7 +30,7 @@ export class ServerError extends GenericError {
     super(
       ReasonPhrases.INTERNAL_SERVER_ERROR,
       StatusCodes.INTERNAL_SERVER_ERROR,
-      message
+      message,
     );
   }
 }
@@ -40,7 +40,7 @@ export class RateLimitError extends GenericError {
     super(
       ReasonPhrases.TOO_MANY_REQUESTS,
       StatusCodes.TOO_MANY_REQUESTS,
-      message
+      message,
     );
   }
 }

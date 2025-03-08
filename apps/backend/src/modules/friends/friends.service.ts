@@ -18,13 +18,13 @@ const getFriends = async (userId: number) => {
       users,
       and(
         eq(friends.status, "accepted"),
-        or(eq(friends.userA, userId), eq(friends.userB, userId))
-      )
+        or(eq(friends.userA, userId), eq(friends.userB, userId)),
+      ),
     )
     .where(
       and(
-        not(eq(users.id, userId)) // Exclude self from results
-      )
+        not(eq(users.id, userId)), // Exclude self from results
+      ),
     );
 
   const friendsRequestsSent = await db
@@ -67,7 +67,7 @@ const addFriend = async (userId: number, friendId: number) => {
   const friendship = await db.query.friends.findFirst({
     where: or(
       and(eq(friends.userA, userId), eq(friends.userB, friendId)),
-      and(eq(friends.userB, userId), eq(friends.userA, friendId))
+      and(eq(friends.userB, userId), eq(friends.userA, friendId)),
     ),
     with: {
       userA: true,
@@ -98,8 +98,8 @@ const deleteFriend = async (userId: number, friendId: number) => {
     .where(
       or(
         and(eq(friends.userA, userId), eq(friends.userB, friendId)),
-        and(eq(friends.userB, userId), eq(friends.userA, friendId))
-      )
+        and(eq(friends.userB, userId), eq(friends.userA, friendId)),
+      ),
     )
     .returning();
 
@@ -115,8 +115,8 @@ const acceptFriendRequest = async (userId: number, friendId: number) => {
       and(
         eq(friends.userA, userId),
         eq(friends.userB, friendId),
-        eq(friends.status, "pending")
-      )
+        eq(friends.status, "pending"),
+      ),
     )
     .returning();
 
@@ -132,8 +132,8 @@ const denyFriendRequest = async (userId: number, friendId: number) => {
       and(
         eq(friends.userA, userId),
         eq(friends.userB, friendId),
-        eq(friends.status, "pending")
-      )
+        eq(friends.status, "pending"),
+      ),
     )
     .returning();
 

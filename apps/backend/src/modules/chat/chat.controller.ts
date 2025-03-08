@@ -10,7 +10,7 @@ const getChatsController = async (req: AuthenticatedRequest, res: Response) => {
 
 const getChatDetailsController = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ) => {
   const { chatId } = req.params;
   const { page, limit } = req.query;
@@ -18,7 +18,7 @@ const getChatDetailsController = async (
     req.user.id,
     parseInt(chatId),
     parseInt(page as string),
-    parseInt(limit as string)
+    parseInt(limit as string),
   );
   res.status(StatusCodes.OK).json({ chatDetails });
 };

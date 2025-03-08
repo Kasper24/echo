@@ -16,20 +16,16 @@ friendsRouter.get("/", (req, res) => {
   getFriendsController(req as AuthenticatedRequest, res as Response);
 });
 
-friendsRouter.post(
-  "/:friendId",
-  validateHandler(friendsSchema),
-  (req, res) => {
-    addFriendController(req as AuthenticatedRequest, res as Response);
-  }
-);
+friendsRouter.post("/:friendId", validateHandler(friendsSchema), (req, res) => {
+  addFriendController(req as AuthenticatedRequest, res as Response);
+});
 
 friendsRouter.delete(
   "/:friendId",
   validateHandler(friendsSchema),
   (req, res) => {
     deleteFriendController(req as AuthenticatedRequest, res as Response);
-  }
+  },
 );
 
 friendsRouter.post(
@@ -37,7 +33,7 @@ friendsRouter.post(
   validateHandler(friendsSchema),
   (req, res) => {
     acceptFriendRequestController(req as AuthenticatedRequest, res as Response);
-  }
+  },
 );
 
 friendsRouter.post(
@@ -45,7 +41,7 @@ friendsRouter.post(
   validateHandler(friendsSchema),
   (req, res) => {
     denyFriendRequestController(req as AuthenticatedRequest, res as Response);
-  }
+  },
 );
 
 export default friendsRouter;
