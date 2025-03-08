@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, exists, notExists } from "drizzle-orm";
+import { and, count, desc, eq, exists, notExists } from "drizzle-orm";
 import { db } from "@repo/database";
 import {
   chatParticipants,
