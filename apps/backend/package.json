@@ -14,14 +14,11 @@
   },
   "jest": {
     "preset": "@repo/jest-presets/node",
-    "testPathIgnorePatterns": [
-      "<rootDir>/src/__tests__/setup.ts"
-    ],
     "moduleNameMapper": {
       "^@repo/backend/(.*)$": "<rootDir>/src/$1"
     },
     "setupFilesAfterEnv": [
-      "<rootDir>/src/__tests__/setup.ts"
+      "<rootDir>/src/jest.setup.ts"
     ]
   },
   "dependencies": {
