@@ -11,7 +11,7 @@ const sendOtpController = async (req: Request, res: Response) => {
 const verifyOtpController = async (req: Request, res: Response) => {
   const { phoneNumber, otp } = req.body;
   const { accessToken, refreshToken } = await verifyOtp(phoneNumber, otp);
-  res.cookie(process.env.JWT_KEY, refreshToken, {
+  res.cookie(process.env.JWT_REFRESH_TOKEN_COOKIE_KEY, refreshToken, {
     httpOnly: true,
     secure: false,
     sameSite: "none",
@@ -21,15 +21,15 @@ const verifyOtpController = async (req: Request, res: Response) => {
 };
 
 const refreshTokenController = async (req: Request, res: Response) => {
-  const { refreshToken } = req.cookies;
+  const refreshToken = req.cookies[process.env.JWT_REFRESH_TOKEN_COOKIE_KEY];
   const accessToken = await refreshAccessToken(refreshToken);
   res.status(StatusCodes.OK).json({ accessToken });
 };
 
 const logoutController = async (req: Request, res: Response) => {
-  const { refreshToken } = req.cookies;
+  const refreshToken = req.cookies[process.env.JWT_REFRESH_TOKEN_COOKIE_KEY];
   await logout(refreshToken);
-  res.clearCookie(process.env.JWT_KEY);
+  res.clearCookie(process.env.JWT_REFRESH_TOKEN_COOKIE_KEY);
   res.status(StatusCodes.OK).json({ message: "Logged out successfully." });
 };
 
