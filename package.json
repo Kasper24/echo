@@ -16,16 +16,36 @@
     "clean": "turbo run clean",
     "dev": "turbo run dev",
     "test": "turbo run test",
-    "lint:types": "turbo run lint:types",
+    "lint:types": "turbo run lint:types --",
     "lint:check": "turbo run lint:check --",
     "lint:fix": "turbo run lint:fix --",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,css,yaml}\"",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,css,yaml}\""
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "npm run lint:check",
-      "npm run test"
+    "apps/backend/**/*.{js,jsx,ts,tsx}": [
+      "npm run lint:check -w backend"
+    ],
+    "apps/backend/**/*.{ts,tsx}": [
+      "sh -c 'npm run lint:types -w backend'"
+    ],
+    "apps/frontend/**/*.{js,jsx,ts,tsx}": [
+      "npm run lint:check -w frontend"
+    ],
+    "apps/frontend/**/*.{ts,tsx}": [
+      "sh -c 'npm run lint:types -w frontend'"
+    ],
+    "packages/database/**/*.{js,jsx,ts,tsx}": [
+      "npm run lint:check -w @repo/database"
+    ],
+    "packages/database/**/*.{ts,tsx}": [
+      "sh -c 'npm run lint:types -w @repo/database'"
+    ],
+    "packages/ui/**/*.{js,jsx,ts,tsx}": [
+      "npm run lint:check -w @repo/ui"
+    ],
+    "packages/ui/**/*.{ts,tsx}": [
+      "sh -c 'npm run lint:types -w @repo/ui'"
     ],
     "*.{js,jsx,ts,tsx,md,html,css}": [
       "npm run format:check"

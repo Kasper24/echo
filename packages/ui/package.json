@@ -14,8 +14,8 @@
   "scripts": {
     "ui:add": "npx shadcn@canary add",
     "lint:types": "tsc --noEmit",
-    "lint:check": "eslint --max-warnings=0 \"src/**/*.{js,jsx,ts,tsx,json}\"",
-    "lint:fix": "eslint --fix \"src/**/*.{js,jsx,ts,tsx,json}\""
+    "lint:check": "eslint --max-warnings=0",
+    "lint:fix": "eslint --fix"
   },
   "peerDependencies": {
     "@types/react": ">=18",
