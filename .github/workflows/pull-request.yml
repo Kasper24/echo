@@ -1,0 +1,8 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+
+jobs:
+  quality-checks:
+    uses: ./.github/workflows/quality-checks.yml
