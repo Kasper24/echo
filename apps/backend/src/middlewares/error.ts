@@ -5,7 +5,7 @@ import { GenericError } from "@repo/backend/utils/errors";
 const errorHandler: ErrorRequestHandler = (
   error: unknown,
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   console.error(error);
 

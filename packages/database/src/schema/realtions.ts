@@ -19,7 +19,7 @@ export const userPrivacySettingsRelations = relations(
       fields: [userPrivacySettings.userId],
       references: [users.id],
     }),
-  })
+  }),
 );
 
 export const friendsRealtions = relations(friends, ({ one }) => ({
@@ -64,7 +64,7 @@ export const chatParticipantsRelations = relations(
       fields: [chatParticipants.chatId],
       references: [chats.id],
     }),
-  })
+  }),
 );
 
 export const messagesRelations = relations(messages, ({ one }) => ({
@@ -94,5 +94,5 @@ export const messageReadReceiptsRelations = relations(
       fields: [messageReadReceipts.userId],
       references: [users.id],
     }),
-  })
+  }),
 );

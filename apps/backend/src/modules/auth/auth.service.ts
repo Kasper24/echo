@@ -13,7 +13,7 @@ import {
 
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
+  process.env.TWILIO_AUTH_TOKEN,
 );
 
 const sendOtp = async (phoneNumber: string) => {

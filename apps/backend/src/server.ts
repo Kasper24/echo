@@ -20,7 +20,7 @@ export const createServer = (): Express => {
       rateLimit({
         windowMs: process.env.WINDOW_SIZE_IN_MINUTES * 60 * 1000,
         max: process.env.MAX_NUMBER_OF_REQUESTS_PER_WINDOW_SIZE,
-      })
+      }),
     )
     .get("/healthcheck", (_req, res) => {
       res.json({

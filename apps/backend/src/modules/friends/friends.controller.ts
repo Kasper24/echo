@@ -11,7 +11,7 @@ import {
 
 const getFriendsController = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ) => {
   const friends = await getFriends(req.user.id);
   res.status(StatusCodes.OK).json({ friends });
@@ -19,7 +19,7 @@ const getFriendsController = async (
 
 const addFriendController = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ) => {
   const { friendId } = req.params;
   await addFriend(req.user.id, parseInt(friendId));
@@ -30,7 +30,7 @@ const addFriendController = async (
 
 const deleteFriendController = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ) => {
   const { friendId } = req.params;
   await deleteFriend(req.user.id, parseInt(friendId));
@@ -39,7 +39,7 @@ const deleteFriendController = async (
 
 const acceptFriendRequestController = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ) => {
   const { friendId } = req.params;
   await acceptFriendRequest(req.user.id, parseInt(friendId));
@@ -48,7 +48,7 @@ const acceptFriendRequestController = async (
 
 const denyFriendRequestController = async (
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
 ) => {
   const { friendId } = req.params;
   await denyFriendRequest(req.user.id, parseInt(friendId));

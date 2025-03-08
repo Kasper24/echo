@@ -18,8 +18,8 @@ const getChats = async (userId: number) => {
         db
           .select()
           .from(chatParticipants)
-          .where(eq(chatParticipants.userId, users.id))
-      )
+          .where(eq(chatParticipants.userId, users.id)),
+      ),
     );
 
   return await Promise.all(
@@ -47,10 +47,10 @@ const getChats = async (userId: number) => {
               .where(
                 and(
                   eq(messageReadReceipts.chatId, chat.id),
-                  eq(messageReadReceipts.userId, userId)
-                )
-              )
-          )
+                  eq(messageReadReceipts.userId, userId),
+                ),
+              ),
+          ),
         );
 
       return {
@@ -58,7 +58,7 @@ const getChats = async (userId: number) => {
         latestMessage,
         unreadMessagesCount,
       };
-    })
+    }),
   );
 };
 
@@ -66,12 +66,12 @@ const getChatDetails = async (
   userId: number,
   chatId: number,
   page: number,
-  limit: number
+  limit: number,
 ) => {
   const isParticipant = await db.query.chatParticipants.findFirst({
     where: and(
       eq(chatParticipants.userId, userId),
-      eq(chatParticipants.chatId, chatId)
+      eq(chatParticipants.chatId, chatId),
     ),
   });
   if (!isParticipant)
