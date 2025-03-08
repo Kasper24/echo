@@ -9,8 +9,6 @@ export const usersRealtions = relations(users, ({ one, many }) => ({
   chats: many(chats),
   friends: many(friends),
   blockedUsers: many(blockedUsers),
-  sentMessages: many(messages, { relationName: "sender" }),
-  receivedMessages: many(messages, { relationName: "receiver" }),
   chatParticipants: many(chatParticipants),
 }));
 
