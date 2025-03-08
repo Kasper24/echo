@@ -1,0 +1,11 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  quality-checks:
+    uses: ./.github/workflows/quality-checks.yml
+
+  # add steps to deploy to AWS with terraform

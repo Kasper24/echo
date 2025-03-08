@@ -1,0 +1,64 @@
+name: Quality Checks
+
+on:
+  workflow_call:
+
+jobs:
+  lint-types:
+    name: Lint Types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - uses: bahmutov/npm-install@v1
+
+      - name: Typescript
+        run: npm run lint:types
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: [lint-types]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - uses: bahmutov/npm-install@v1
+
+      - name: Eslint
+        run: npm run lint:check
+
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    needs: [lint-types, lint]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - uses: bahmutov/npm-install@v1
+
+      - name: Prettier
+        run: npm run format:check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: [lint-types, lint, format]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - uses: bahmutov/npm-install@v1
+
+      - name: Jest
+        run: npm run test
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint-types, lint, format, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - uses: bahmutov/npm-install@v1
+
+      - name: Build project
+        run: npm run build
