@@ -23,7 +23,7 @@ const errorHandler: ErrorRequestHandler = (
   } else {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: ReasonPhrases.INTERNAL_SERVER_ERROR,
-      message: "",
+      message: "Something went wrong",
     });
   }
 };
