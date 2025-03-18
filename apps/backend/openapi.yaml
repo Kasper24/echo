@@ -1,0 +1,513 @@
+openapi: 3.0.3
+info:
+  title: Chat API
+  description: API for authentication, chat, friends, and user management
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development server
+
+paths:
+  /healthcheck:
+    get:
+      summary: Check if the server is running
+      operationId: healthcheck
+      responses:
+        "200":
+          description: Server is running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  uptime:
+                    type: number
+                  timestamp:
+                    type: integer
+
+  /auth/otp/send:
+    post:
+      summary: Send OTP
+      description: Sends a one-time password (OTP) to the user's phone number.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+                  example: "1234567890"
+      responses:
+        200:
+          description: OTP sent successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "OTP was sent successfully."
+        429:
+          description: Too many requests (rate limit exceeded).
+
+  /auth/otp/status:
+    post:
+      summary: Check OTP Status
+      description: Checks if an OTP is still valid for a given phone number.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+                  example: "1234567890"
+      responses:
+        200:
+          description: OTP status checked successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "OTP status checked successfully."
+        400:
+          description: OTP expired or invalid.
+
+  /auth/otp/verify:
+    post:
+      summary: Verify OTP
+      description: Verifies the OTP and issues access and refresh tokens.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                phoneNumber:
+                  type: string
+                  example: "1234567890"
+                otp:
+                  type: string
+                  example: "123456"
+      responses:
+        201:
+          description: OTP verified successfully. Returns access and refresh tokens.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1..."
+        400:
+          description: Invalid or expired OTP.
+
+  /auth/refresh-token:
+    get:
+      summary: Refresh Access Token
+      description: Refreshes the access token using a valid refresh token.
+      tags:
+        - Auth
+      responses:
+        200:
+          description: Access token refreshed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1..."
+        401:
+          description: Invalid or expired refresh token.
+
+  /auth/logout:
+    get:
+      summary: Logout
+      description: Logs out the user by clearing the refresh token.
+      tags:
+        - Auth
+      responses:
+        200:
+          description: Successfully logged out.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully."
+
+  /chat:
+    get:
+      summary: Get user chats
+      operationId: getChats
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: A list of chats
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  chats:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        latestMessage:
+                          type: object
+                          nullable: true
+                          properties:
+                            content:
+                              type: string
+                        unreadMessagesCount:
+                          type: integer
+        "401":
+          description: Unauthorized
+
+  /chat/{id}:
+    post:
+      summary: Get details of a specific chat
+      operationId: getChatDetails
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: Chat details including messages
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        content:
+                          type: string
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      hasMore:
+                        type: boolean
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden
+
+  /friends:
+    get:
+      summary: Get friends list
+      description: Retrieve a list of friends, sent requests, and received requests.
+      tags:
+        - Friends
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Successfully retrieved friends list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  acceptedFriends:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  friendsRequestsSent:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+                  friendsRequestsReceived:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/User"
+        401:
+          description: Unauthorized
+
+  /friends/{friendId}:
+    post:
+      summary: Send a friend request
+      description: Sends a friend request to another user.
+      tags:
+        - Friends
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: friendId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Friend request sent successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: Invalid request (e.g., sending request to self or existing request)
+        401:
+          description: Unauthorized
+
+    delete:
+      summary: Remove a friend
+      description: Deletes a friend from the user's friend list.
+      tags:
+        - Friends
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: friendId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Friend deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: Friend not found or already deleted
+        401:
+          description: Unauthorized
+
+  /friends/{friendId}/accept:
+    post:
+      summary: Accept a friend request
+      description: Accepts a pending friend request.
+      tags:
+        - Friends
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: friendId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Friend request accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: Friend request not found or already accepted
+        401:
+          description: Unauthorized
+
+  /friends/{friendId}/deny:
+    post:
+      summary: Deny a friend request
+      description: Denies a pending friend request.
+      tags:
+        - Friends
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: friendId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Friend request denied
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        400:
+          description: Friend request not found or already denied
+        401:
+          description: Unauthorized
+
+  /user:
+    get:
+      summary: Get user details
+      description: Fetches the authenticated user's profile details.
+      operationId: getUser
+      security:
+        - BearerAuth: []
+      tags:
+        - User
+      responses:
+        "200":
+          description: Successfully retrieved user data.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - Token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      summary: Update user details
+      description: Updates the authenticated user's profile.
+      operationId: updateUser
+      security:
+        - BearerAuth: []
+      tags:
+        - User
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                updatedUser:
+                  $ref: "#/components/schemas/UserUpdate"
+      responses:
+        "200":
+          description: Successfully updated user details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: "#/components/schemas/User"
+        "400":
+          description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized - Token is missing or invalid.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        phoneNumber:
+          type: string
+        displayName:
+          type: string
+        profilePicture:
+          type: string
+          nullable: true
+        about:
+          type: string
+          nullable: true
+        status:
+          type: string
+
+    UserUpdate:
+      type: object
+      properties:
+        displayName:
+          type: string
+          example: "Jane Doe"
+        profilePicture:
+          type: string
+          format: uri
+          example: "https://example.com/new-profile.jpg"
+        about:
+          type: string
+          example: "Lover of open-source and coding."
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "User not found."
