@@ -6,7 +6,7 @@ import { users } from "./users";
 export const chats = pgTable("chats", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   type: chatTypeEnum().notNull().default("direct"),
-  name: text().unique().notNull(),
+  name: text().notNull(),
   description: text().notNull(),
   picture: text().notNull(),
   ...timeStamps(false),
