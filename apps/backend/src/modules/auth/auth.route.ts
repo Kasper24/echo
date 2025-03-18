@@ -1,5 +1,6 @@
 import { Router } from "express";
 import validateHandler from "@repo/backend/middlewares/validation";
+import rateLimitHandler from "@repo/backend/middlewares/rate-limit";
 import {
   sendOtpController,
   verifyOtpController,
@@ -14,10 +15,29 @@ import {
 
 const authRouter = Router();
 
-authRouter.post("/otp/send", validateHandler(sendOtpSchema), sendOtpController);
+const sendOtpLimiter = rateLimitHandler({
+  endpoint: "/otp/send",
+  timeSpan: "5m",
+  limit: 5,
+  message: "Too many SMS messages have been sent to this number recently",
+});
+
+authRouter.post(
+  "/otp/send",
+  sendOtpLimiter,
+  validateHandler(sendOtpSchema),
+  sendOtpController
+);
+
+const verifyOtplimiter = rateLimitHandler({
+  endpoint: "/otp/verify",
+  timeSpan: "5m",
+  limit: 5,
+});
 
 authRouter.post(
   "/otp/verify",
+  verifyOtplimiter,
   validateHandler(verifyOtpSchema),
   verifyOtpController
 );
