@@ -9,6 +9,8 @@ const environmentVariableSchema = z.object({
   // Node Environment
   NODE_ENV: z.enum(["development", "test", "production"]),
 
+  RESET_DB: z.coerce.boolean(),
+
   PORT: z.coerce.number().positive().int().default(5000),
 
   CORS_ORIGIN: z.string().default("http://localhost:3000"),

@@ -8,6 +8,7 @@
     "./schema": "./src/schema/index.ts"
   },
   "scripts": {
+    "predev": "drizzle-kit studio &",
     "dev": "docker compose -f ../../docker-compose.yml --profile postgres up",
     "lint:types": "tsc --noEmit",
     "lint:check": "eslint --max-warnings=0",
@@ -21,9 +22,11 @@
     "drizzle-orm": ">=0.40.0"
   },
   "dependencies": {
+    "drizzle-seed": "^0.3.1",
     "pg": "^8.13.3"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.6.0",
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@types/pg": "^8.11.11",

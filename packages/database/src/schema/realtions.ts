@@ -6,9 +6,9 @@ import { messageReadReceipts, messages } from "./messages";
 
 export const usersRealtions = relations(users, ({ one, many }) => ({
   userPrivacySettings: one(userPrivacySettings),
-  chats: many(chats),
-  friends: many(friends),
-  blockedUsers: many(blockedUsers),
+  friendsSent: many(friends, { relationName: "friendsSent" }),
+  friendsReceived: many(friends, { relationName: "friendsReceived" }),
+  blockedUsers: many(blockedUsers, { relationName: "blocked" }),
   chatParticipants: many(chatParticipants),
 }));
 
@@ -26,12 +26,12 @@ export const friendsRealtions = relations(friends, ({ one }) => ({
   userA: one(users, {
     fields: [friends.userA],
     references: [users.id],
-    relationName: "userA",
+    relationName: "friendsSent",
   }),
   userB: one(users, {
     fields: [friends.userB],
     references: [users.id],
-    relationName: "userB",
+    relationName: "friendsReceived",
   }),
 }));
 

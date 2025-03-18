@@ -10,7 +10,7 @@ import { timeStamps } from "./base";
 
 export const users = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  phoneNumber: varchar({ length: 15 }).notNull(),
+  phoneNumber: varchar({ length: 15 }).unique().notNull(),
   displayName: varchar({ length: 255 }).notNull().default("New User"),
   profilePicture: text(),
   about: text().default("Hello, I'm a new user!"),
