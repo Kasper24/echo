@@ -15,6 +15,11 @@ const errorHandler: ErrorRequestHandler = (
       error: error.name,
       message: error.message,
     });
+  } else if (error instanceof Error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: ReasonPhrases.INTERNAL_SERVER_ERROR,
+      message: error.message,
+    });
   } else {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: ReasonPhrases.INTERNAL_SERVER_ERROR,
