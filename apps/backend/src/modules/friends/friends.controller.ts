@@ -13,7 +13,7 @@ const getFriendsController = async (
   req: AuthenticatedRequest,
   res: Response,
 ) => {
-  const friends = await getFriends(req.user.id);
+  const friends = await getFriends(req.userId);
   res.status(StatusCodes.OK).json({ friends });
 };
 
@@ -22,7 +22,7 @@ const addFriendController = async (
   res: Response,
 ) => {
   const { friendId } = req.params;
-  await addFriend(req.user.id, parseInt(friendId));
+  await addFriend(req.userId, parseInt(friendId));
   res
     .status(StatusCodes.OK)
     .json({ message: "Friend request sent successfully." });
@@ -33,7 +33,7 @@ const deleteFriendController = async (
   res: Response,
 ) => {
   const { friendId } = req.params;
-  await deleteFriend(req.user.id, parseInt(friendId));
+  await deleteFriend(req.userId, parseInt(friendId));
   res.status(StatusCodes.OK).json({ message: "Friend deleted successfully." });
 };
 
@@ -42,7 +42,7 @@ const acceptFriendRequestController = async (
   res: Response,
 ) => {
   const { friendId } = req.params;
-  await acceptFriendRequest(req.user.id, parseInt(friendId));
+  await acceptFriendRequest(req.userId, parseInt(friendId));
   res.status(StatusCodes.OK).json({ message: "Friend request accepted." });
 };
 
@@ -51,7 +51,7 @@ const denyFriendRequestController = async (
   res: Response,
 ) => {
   const { friendId } = req.params;
-  await denyFriendRequest(req.user.id, parseInt(friendId));
+  await denyFriendRequest(req.userId, parseInt(friendId));
   res.status(StatusCodes.OK).json({ message: "Friend request denied." });
 };
 

@@ -4,7 +4,7 @@ import { getChats, getChatDetails } from "./chat.service";
 import { AuthenticatedRequest } from "@repo/backend/middlewares/auth";
 
 const getChatsController = async (req: AuthenticatedRequest, res: Response) => {
-  const chats = await getChats(req.user.id);
+  const chats = await getChats(req.userId);
   res.status(StatusCodes.OK).json({ chats });
 };
 
@@ -15,7 +15,7 @@ const getChatDetailsController = async (
   const { chatId } = req.params;
   const { page, limit } = req.query;
   const chatDetails = await getChatDetails(
-    req.user.id,
+    req.userId,
     parseInt(chatId),
     parseInt(page as string),
     parseInt(limit as string),

@@ -1,12 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import { AuthError } from "@repo/backend/utils/errors";
 import { jwtVerifyAccessToken } from "@repo/backend/utils/jwt";
-import { User, users } from "@repo/database/schema";
-import { db } from "@repo/database";
-import { eq } from "drizzle-orm";
 
 export interface AuthenticatedRequest extends Request {
-  user: User;
+  userId: number;
 }
 
 const authHandler = async (req: Request, res: Response, next: NextFunction) => {
@@ -20,15 +17,10 @@ const authHandler = async (req: Request, res: Response, next: NextFunction) => {
     const { userId } = jwtVerifyAccessToken(token);
     if (!userId) throw new AuthError("Invalid token.");
 
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-    if (!user) throw new AuthError("Invalid token.");
-
-    (req as AuthenticatedRequest).user = user;
+    (req as AuthenticatedRequest).userId = userId;
   } catch (error: unknown) {
     if (error instanceof Error) throw new AuthError(error.message);
-    else throw new AuthError("Invalid token");
+    else throw new AuthError("Invalid token.");
   }
 
   next();
