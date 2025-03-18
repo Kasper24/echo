@@ -1,5 +1,10 @@
 import { z, ZodError } from "zod";
 
+const timeSpanType = z
+  .string()
+  .regex(/^\d+[smhd]$/, "Invalid format. Use formats like '15m', '1h', '7d'.")
+  .transform((val) => val as `${number}${"s" | "m" | "h" | "d"}`);
+
 const environmentVariableSchema = z.object({
   // Node Environment
   NODE_ENV: z.enum(["development", "test", "production"]),
@@ -70,7 +75,7 @@ const environmentVariableSchema = z.object({
   TWILIO_PHONE_NUMBER: z.string(),
 
   // Rate limit
-  WINDOW_SIZE_IN_MINUTES: z.coerce.number().positive().int().default(15),
+  WINDOW_SIZE_IN_MINUTES: timeSpanType.default("15m"),
   MAX_NUMBER_OF_REQUESTS_PER_WINDOW_SIZE: z.coerce
     .number()
     .positive()
