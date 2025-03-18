@@ -3,6 +3,7 @@
   "tasks": {
     "db:generate": {
       "env": [
+        "NODE_ENV",
         "POSTGRES_URL",
         "POSTGRES_HOST",
         "POSTGRES_PORT",
@@ -13,6 +14,7 @@
     },
     "db:migrate": {
       "env": [
+        "NODE_ENV",
         "POSTGRES_URL",
         "POSTGRES_HOST",
         "POSTGRES_PORT",
@@ -23,6 +25,7 @@
     },
     "db:push": {
       "env": [
+        "NODE_ENV",
         "POSTGRES_URL",
         "POSTGRES_HOST",
         "POSTGRES_PORT",

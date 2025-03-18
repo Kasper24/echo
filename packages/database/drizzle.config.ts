@@ -10,5 +10,6 @@ export default defineConfig({
     database: process.env.POSTGRES_DATABASE!,
     user: process.env.POSTGRES_USER!,
     password: process.env.POSTGRES_PASSWORD!,
+    ssl: process.env.NODE_ENV === "production" ? true : false,
   },
 });
