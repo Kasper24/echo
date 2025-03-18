@@ -39,6 +39,18 @@ const sendOtp = async (phoneNumber: string) => {
   });
 };
 
+const checkOtpStatus = async (phoneNumber: string) => {
+  const otp = await db.query.otps.findFirst({
+    where: eq(otps.phoneNumber, phoneNumber),
+  });
+
+  if (!otp || otp.expiresAt < new Date()) {
+    throw new AuthError("OTP expired or invalid.");
+  }
+
+  return true;
+};
+
 const verifyOtp = async (phoneNumber: string, otp: string) => {
   const existingOtp = await db.query.otps.findFirst({
     where: eq(otps.phoneNumber, phoneNumber),
@@ -120,4 +132,4 @@ const logout = async (refreshToken: string) => {
   }
 };
 
-export { sendOtp, verifyOtp, refreshAccessToken, logout };
+export { sendOtp, checkOtpStatus, verifyOtp, refreshAccessToken, logout };
