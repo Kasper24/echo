@@ -14,18 +14,18 @@ import {
 
 const authRouter = Router();
 
-authRouter.post("/send-otp", validateHandler(sendOtpSchema), sendOtpController);
+authRouter.post("/otp/send", validateHandler(sendOtpSchema), sendOtpController);
 
 authRouter.post(
-  "/verify-otp",
+  "/otp/verify",
   validateHandler(verifyOtpSchema),
-  verifyOtpController,
+  verifyOtpController
 );
 
 authRouter.get(
   "/refresh-token",
   validateHandler(refreshTokenSchema),
-  refreshTokenController,
+  refreshTokenController
 );
 
 authRouter.get("/logout", logoutController);
