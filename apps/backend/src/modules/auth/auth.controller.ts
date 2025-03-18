@@ -19,8 +19,8 @@ const verifyOtpController = async (req: Request, res: Response) => {
   });
   res.cookie(process.env.JWT_REFRESH_TOKEN_COOKIE_KEY, refreshToken, {
     httpOnly: true,
-    secure: false,
-    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
     maxAge: process.env.JWT_REFRESH_TOKEN_MAX_AGE,
   });
   res.status(StatusCodes.CREATED).json({ accessToken });
