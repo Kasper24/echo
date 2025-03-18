@@ -11,8 +11,7 @@ const validateHandler = (schema: z.ZodSchema) => {
       if (error instanceof ZodError) {
         const errorMessages = error.errors
           .map(
-            (issue: z.ZodIssue) =>
-              `${issue.path.join(".")} is ${issue.message}`,
+            (issue: z.ZodIssue) => `${issue.path.join(".")} is ${issue.message}`
           )
           .join(", ");
         throw new BadRequestError(errorMessages);

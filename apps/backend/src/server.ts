@@ -11,16 +11,21 @@ export const createServer = (): Express => {
   const app = express();
   app
     .disable("x-powered-by")
-    .use(morgan("dev"))
+    .use(
+      morgan(
+        `:remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]`,
+        { immediate: true },
+      ),
+    )
     .use(express.urlencoded({ extended: true }))
     .use(express.json())
     .use(cookieParser())
-    .use(cors())
+    .use(cors({ origin: "http://localhost:3002", credentials: true }))
     .use(
       rateLimitHandler({
         timeSpan: process.env.WINDOW_SIZE_IN_MINUTES,
         limit: process.env.MAX_NUMBER_OF_REQUESTS_PER_WINDOW_SIZE,
-      })
+      }),
     )
     .get("/healthcheck", (_req, res) => {
       res.json({
