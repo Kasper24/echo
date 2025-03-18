@@ -44,29 +44,18 @@ const environmentVariableSchema = z.object({
     .optional(),
 
   //JWT
+  JWT_ACCESS_TOKEN_SECRET: z.string().trim().min(1).default("secret"),
+  JWT_ACCESS_TOKEN_EXPIRY: timeSpanType.default("15m"),
+  JWT_ACCESS_TOKEN_COOKIE_KEY: z.string().trim().min(1).default("accessToken"),
+  JWT_ACCESS_TOKEN_MAX_AGE: z.coerce.number().default(1000 * 60 * 15),
+
+  JWT_REFRESH_TOKEN_SECRET: z.string().trim().min(1).default("secret"),
+  JWT_REFRESH_TOKEN_EXPIRY: timeSpanType.default("7d"),
   JWT_REFRESH_TOKEN_COOKIE_KEY: z
     .string()
     .trim()
     .min(1)
     .default("refreshToken"),
-  JWT_REFRESH_TOKEN_SECRET: z.string().trim().min(1).default("secret"),
-  JWT_ACCESS_TOKEN_SECRET: z.string().trim().min(1).default("secret"),
-  JWT_ACCESS_TOKEN_EXPIRY: z
-    .string()
-    .regex(
-      /^\d+[smhd]$/,
-      "Invalid JWT expiry format. Use formats like '15m', '1h', '7d'.",
-    )
-    .transform((val) => val as `${number}${"s" | "m" | "h" | "d"}`)
-    .default("15m"),
-  JWT_REFRESH_TOKEN_EXPIRY: z
-    .string()
-    .regex(
-      /^\d+[smhd]$/,
-      "Invalid JWT expiry format. Use formats like '15m', '1h', '7d'.",
-    )
-    .transform((val) => val as `${number}${"s" | "m" | "h" | "d"}`)
-    .default("7d"),
   JWT_REFRESH_TOKEN_MAX_AGE: z.coerce.number().default(7 * 24 * 60 * 60 * 1000),
 
   // Twilio
