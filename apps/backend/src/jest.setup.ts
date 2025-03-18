@@ -1,8 +1,9 @@
-import { jest, afterEach, beforeAll } from "@jest/globals";
+import { NextFunction } from "express";
 import { drizzle } from "drizzle-orm/pglite";
-import { pushSchema } from "drizzle-kit/api";
+import { jest, afterEach, beforeAll, afterAll } from "@jest/globals";
 import * as schema from "@repo/database/schema";
-import { db } from "@repo/database";
+import { db, dbPush, dbReset } from "@repo/database";
+import redis from "@repo/backend/redis";
 
 jest.mock("@repo/database", () => {
   const originalModule =
@@ -17,27 +18,32 @@ jest.mock("@repo/database", () => {
   };
 });
 
+jest.mock("@repo/backend/middlewares/rate-limit", () => {
+  const originalModule = jest.requireActual<
+    typeof import("@repo/backend/middlewares/rate-limit")
+  >("@repo/backend/middlewares/rate-limit");
+
+  const rateLimitHandler = jest
+    .fn()
+    .mockReturnValue((_: Request, __: Response, next: NextFunction) => {
+      next();
+    });
+
+  return {
+    ...originalModule,
+    __esModule: true,
+    rateLimitHandler,
+  };
+});
+
 beforeAll(async () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { apply } = await pushSchema(schema, db as any);
-  await apply();
+  await dbPush(db);
 });
 
 afterEach(async () => {
-  console.log("🗑️  Emptying the entire database");
+  await dbReset(db);
+});
 
-  const tableSchema = db._.schema;
-  if (!tableSchema) throw new Error("No table schema found");
-
-  const queries = Object.values(tableSchema).map((table) => {
-    // console.log(`🧨 Preparing delete query for table: ${table.dbName}`);
-    return table.tsName;
-  });
-  // console.log(queries);
-
-  queries.forEach(async (query) => {
-    const schemaToDelete = schema[query];
-    if (!schemaToDelete) throw new Error(`No schema found for ${query}`);
-    await db.delete(schemaToDelete);
-  });
+afterAll(async () => {
+  redis.quit();
 });
