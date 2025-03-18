@@ -1,11 +1,25 @@
 import { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { sendOtp, verifyOtp, refreshAccessToken, logout } from "./auth.service";
+import {
+  sendOtp,
+  checkOtpStatus,
+  verifyOtp,
+  refreshAccessToken,
+  logout,
+} from "./auth.service";
 
 const sendOtpController = async (req: Request, res: Response) => {
   const { phoneNumber } = req.body;
   await sendOtp(phoneNumber);
   res.status(StatusCodes.OK).json({ message: "OTP was sent successfully." });
+};
+
+const checkOtpStatusController = async (req: Request, res: Response) => {
+  const { phoneNumber } = req.body;
+  await checkOtpStatus(phoneNumber);
+  res
+    .status(StatusCodes.OK)
+    .json({ message: "OTP status checked successfully." });
 };
 
 const verifyOtpController = async (req: Request, res: Response) => {
@@ -48,6 +62,7 @@ const logoutController = async (req: Request, res: Response) => {
 
 export {
   sendOtpController,
+  checkOtpStatusController,
   verifyOtpController,
   refreshTokenController,
   logoutController,
