@@ -1,7 +1,9 @@
 import { Router } from "express";
 import validateHandler from "@repo/backend/middlewares/validation";
+import rateLimitHandler from "@repo/backend/middlewares/rate-limit";
 import {
   sendOtpController,
+  checkOtpStatusController,
   verifyOtpController,
   refreshTokenController,
   logoutController,
@@ -10,22 +12,48 @@ import {
   sendOtpSchema,
   verifyOtpSchema,
   refreshTokenSchema,
+  statusOtpSchema,
 } from "./auth.schema";
 
 const authRouter = Router();
 
-authRouter.post("/send-otp", validateHandler(sendOtpSchema), sendOtpController);
+const sendOtpLimiter = rateLimitHandler({
+  endpoint: "/otp/send",
+  timeSpan: "5m",
+  limit: 5,
+  message: "Too many SMS messages have been sent to this number recently",
+});
 
 authRouter.post(
-  "/verify-otp",
+  "/otp/send",
+  sendOtpLimiter,
+  validateHandler(sendOtpSchema),
+  sendOtpController
+);
+
+const verifyOtplimiter = rateLimitHandler({
+  endpoint: "/otp/verify",
+  timeSpan: "5m",
+  limit: 5,
+});
+
+authRouter.post(
+  "/otp/status",
+  validateHandler(statusOtpSchema),
+  checkOtpStatusController
+);
+
+authRouter.post(
+  "/otp/verify",
+  verifyOtplimiter,
   validateHandler(verifyOtpSchema),
-  verifyOtpController,
+  verifyOtpController
 );
 
 authRouter.get(
   "/refresh-token",
   validateHandler(refreshTokenSchema),
-  refreshTokenController,
+  refreshTokenController
 );
 
 authRouter.get("/logout", logoutController);
