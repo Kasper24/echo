@@ -5,22 +5,17 @@ import {
   chats,
   messageReadReceipts,
   messages,
-  users,
 } from "@repo/database/schema";
 import { AuthError } from "@repo/backend/utils/errors";
 
 const getChats = async (userId: number) => {
   const userChats = await db
-    .select()
+    .select({
+      id: chats.id,
+    })
     .from(chats)
-    .where(
-      exists(
-        db
-          .select()
-          .from(chatParticipants)
-          .where(eq(chatParticipants.userId, users.id)),
-      ),
-    );
+    .innerJoin(chatParticipants, eq(chatParticipants.chatId, chats.id))
+    .where(eq(chatParticipants.userId, userId));
 
   return await Promise.all(
     userChats.map(async (chat) => {
