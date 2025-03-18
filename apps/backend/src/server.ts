@@ -1,11 +1,11 @@
 import express, { type Express } from "express";
 import morgan from "morgan";
 import cors from "cors";
-import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import { NotFoundError } from "@repo/backend/utils/errors";
 import rootRouter from "@repo/backend/modules";
 import errorHandler from "@repo/backend/middlewares/error";
+import rateLimitHandler from "@repo/backend/middlewares/rate-limit";
 
 export const createServer = (): Express => {
   const app = express();
@@ -17,10 +17,10 @@ export const createServer = (): Express => {
     .use(cookieParser())
     .use(cors())
     .use(
-      rateLimit({
-        windowMs: process.env.WINDOW_SIZE_IN_MINUTES * 60 * 1000,
-        max: process.env.MAX_NUMBER_OF_REQUESTS_PER_WINDOW_SIZE,
-      }),
+      rateLimitHandler({
+        timeSpan: process.env.WINDOW_SIZE_IN_MINUTES,
+        limit: process.env.MAX_NUMBER_OF_REQUESTS_PER_WINDOW_SIZE,
+      })
     )
     .get("/healthcheck", (_req, res) => {
       res.json({
