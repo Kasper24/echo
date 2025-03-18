@@ -1,4 +1,4 @@
-import { Request, Response, ErrorRequestHandler } from "express";
+import { Request, Response, ErrorRequestHandler, NextFunction } from "express";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { GenericError } from "@repo/backend/utils/errors";
 
@@ -6,6 +6,7 @@ const errorHandler: ErrorRequestHandler = (
   error: unknown,
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   console.error(error);
 
@@ -14,10 +15,15 @@ const errorHandler: ErrorRequestHandler = (
       error: error.name,
       message: error.message,
     });
+  } else if (error instanceof Error) {
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: ReasonPhrases.INTERNAL_SERVER_ERROR,
+      message: error.message,
+    });
   } else {
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
       error: ReasonPhrases.INTERNAL_SERVER_ERROR,
-      message: "",
+      message: "Something went wrong",
     });
   }
 };
