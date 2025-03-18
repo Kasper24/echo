@@ -6,7 +6,7 @@ import {
   messageReadReceipts,
   messages,
 } from "@repo/database/schema";
-import { AuthError } from "@repo/backend/utils/errors";
+import { AuthError } from "@repo/backend/errors";
 
 const getChats = async (userId: number) => {
   const userChats = await db

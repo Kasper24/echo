@@ -1,7 +1,7 @@
 import { and, eq, not, or } from "drizzle-orm";
 import { db } from "@repo/database";
 import { friends, users } from "@repo/database/schema";
-import { BadRequestError } from "@repo/backend/utils/errors";
+import { BadRequestError } from "@repo/backend/errors";
 
 const getFriends = async (userId: number) => {
   const acceptedFriends = await db

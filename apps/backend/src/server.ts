@@ -2,7 +2,7 @@ import express, { type Express } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { NotFoundError } from "@repo/backend/utils/errors";
+import { NotFoundError } from "@repo/backend/errors";
 import rootRouter from "@repo/backend/modules";
 import errorHandler from "@repo/backend/middlewares/error";
 import rateLimitHandler from "@repo/backend/middlewares/rate-limit";

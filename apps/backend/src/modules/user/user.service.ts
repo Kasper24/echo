@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@repo/database";
 import { User, users } from "@repo/database/schema";
-import { BadRequestError, NotFoundError } from "@repo/backend/utils/errors";
+import { BadRequestError, NotFoundError } from "@repo/backend/errors";
 
 const getUser = async (userId: number) => {
   const me = await db.query.users.findFirst({
