@@ -3,6 +3,7 @@ import validateHandler from "@repo/backend/middlewares/validation";
 import rateLimitHandler from "@repo/backend/middlewares/rate-limit";
 import {
   sendOtpController,
+  checkOtpStatusController,
   verifyOtpController,
   refreshTokenController,
   logoutController,
@@ -11,6 +12,7 @@ import {
   sendOtpSchema,
   verifyOtpSchema,
   refreshTokenSchema,
+  statusOtpSchema,
 } from "./auth.schema";
 
 const authRouter = Router();
@@ -34,6 +36,12 @@ const verifyOtplimiter = rateLimitHandler({
   timeSpan: "5m",
   limit: 5,
 });
+
+authRouter.post(
+  "/otp/status",
+  validateHandler(statusOtpSchema),
+  checkOtpStatusController
+);
 
 authRouter.post(
   "/otp/verify",
