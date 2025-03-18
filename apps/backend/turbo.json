@@ -4,6 +4,7 @@
     "build": {
       "env": [
         "NODE_ENV",
+        "RESET_DB",
         "EXPRESS_ENV",
         "PORT",
         "CORS_ORIGIN",
