@@ -13,7 +13,7 @@ import {
 
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN,
+  process.env.TWILIO_AUTH_TOKEN
 );
 
 const sendOtp = async (phoneNumber: string) => {
@@ -28,7 +28,7 @@ const sendOtp = async (phoneNumber: string) => {
       expiresAt,
     })
     .onConflictDoUpdate({
-      target: otps.phoneNumber, // The unique constraint column
+      target: otps.phoneNumber,
       set: { otp, expiresAt, updatedAt: new Date() },
     });
 
@@ -83,13 +83,16 @@ const verifyOtp = async (phoneNumber: string, otp: string) => {
   const refreshToken = jwtSignRefreshToken({ userId: user.id });
 
   const hashedToken = await argon2.hash(refreshToken);
-
-  await db.delete(refreshTokens).where(eq(refreshTokens.userId, user.id));
-
-  await db.insert(refreshTokens).values({
-    userId: user.id,
-    token: hashedToken,
-  });
+  await db
+    .insert(refreshTokens)
+    .values({
+      userId: user.id,
+      token: hashedToken,
+    })
+    .onConflictDoUpdate({
+      target: refreshTokens.userId,
+      set: { token: hashedToken, updatedAt: new Date() },
+    });
 
   return { accessToken, refreshToken };
 };
