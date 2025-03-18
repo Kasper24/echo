@@ -19,6 +19,7 @@ export const otps = pgTable("otps", {
 export const refreshTokens = pgTable("refresh_tokens", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   userId: integer()
+    .unique()
     .notNull()
     .references(() => users.id, { onDelete: "cascade", onUpdate: "cascade" }),
   token: text().notNull().unique(),
