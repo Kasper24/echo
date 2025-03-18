@@ -1,4 +1,4 @@
-import { Request, Response, ErrorRequestHandler } from "express";
+import { Request, Response, ErrorRequestHandler, NextFunction } from "express";
 import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import { GenericError } from "@repo/backend/utils/errors";
 
@@ -6,6 +6,7 @@ const errorHandler: ErrorRequestHandler = (
   error: unknown,
   req: Request,
   res: Response,
+  next: NextFunction,
 ) => {
   console.error(error);
 
