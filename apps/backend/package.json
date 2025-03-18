@@ -19,7 +19,7 @@
       "^@repo/backend/(.*)$": "<rootDir>/src/$1"
     },
     "setupFilesAfterEnv": [
-      "<rootDir>/src/jest.setup.ts"
+      "<rootDir>/jest.setup.ts"
     ]
   },
   "dependencies": {

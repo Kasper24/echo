@@ -1,5 +1,5 @@
 import { createServer } from "@repo/backend/server";
-import envValidate from "@repo/backend/config";
+import envValidate from "@repo/backend/env";
 import { dbPush, dbReset, dbSeed, dbWaitForConnection } from "@repo/database";
 
 envValidate();

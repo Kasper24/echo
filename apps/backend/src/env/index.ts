@@ -5,7 +5,7 @@ const timeSpanType = z
   .regex(/^\d+[smhd]$/, "Invalid format. Use formats like '15m', '1h', '7d'.")
   .transform((val) => val as `${number}${"s" | "m" | "h" | "d"}`);
 
-const environmentVariableSchema = z.object({
+const envSchema = z.object({
   // Node Environment
   NODE_ENV: z.enum(["development", "test", "production"]),
 
@@ -76,20 +76,18 @@ const environmentVariableSchema = z.object({
 
 const envValidate = () => {
   try {
-    environmentVariableSchema.parse(process.env);
+    envSchema.parse(process.env);
   } catch (error) {
     if (error instanceof ZodError) console.error(error.errors);
     process.exit(1);
   }
 };
 
-type EnvSchemaType = z.infer<typeof environmentVariableSchema>;
-
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    interface ProcessEnv extends EnvSchemaType {}
+    interface ProcessEnv extends z.infer<typeof environmentVariableSchema> {}
   }
 }
 

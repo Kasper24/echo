@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { AuthError } from "@repo/backend/utils/errors";
+import { AuthError } from "@repo/backend/errors";
 import { jwtVerifyAccessToken } from "@repo/backend/utils/jwt";
 
 export interface AuthenticatedRequest extends Request {
