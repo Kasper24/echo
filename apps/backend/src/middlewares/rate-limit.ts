@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import redis from "@repo/backend/redis";
 import { parseTimeSpan, type TimeSpan } from "@repo/backend/utils/time";
-import { RateLimitError } from "@repo/backend/utils/errors";
+import { RateLimitError } from "@repo/backend/errors";
 
 const rateLimitHandler = ({
   endpoint = "global",

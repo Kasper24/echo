@@ -4,7 +4,7 @@ import twilio from "twilio";
 import { eq } from "drizzle-orm";
 import { db } from "@repo/database";
 import { otps, refreshTokens, users } from "@repo/database/schema";
-import { AuthError } from "@repo/backend/utils/errors";
+import { AuthError } from "@repo/backend/errors";
 import {
   jwtSignAccessToken,
   jwtSignRefreshToken,
