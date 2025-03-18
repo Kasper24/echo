@@ -20,12 +20,12 @@ export const createServer = (): Express => {
     .use(express.urlencoded({ extended: true }))
     .use(express.json())
     .use(cookieParser())
-    .use(cors())
+    .use(cors({ origin: "http://localhost:3002", credentials: true }))
     .use(
       rateLimitHandler({
         timeSpan: process.env.WINDOW_SIZE_IN_MINUTES,
         limit: process.env.MAX_NUMBER_OF_REQUESTS_PER_WINDOW_SIZE,
-      })
+      }),
     )
     .get("/healthcheck", (_req, res) => {
       res.json({
