@@ -10,7 +10,7 @@ import { timeStamps } from "./base";
 
 export const otps = pgTable("otps", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  phoneNumber: varchar({ length: 15 }).notNull(),
+  phoneNumber: varchar({ length: 15 }).unique().notNull(),
   otp: varchar({ length: 6 }).notNull(),
   expiresAt: timestamp().notNull(),
   ...timeStamps(false),
