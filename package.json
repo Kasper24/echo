@@ -24,31 +24,31 @@
   },
   "lint-staged": {
     "apps/backend/**/*.{js,jsx,ts,tsx}": [
-      "npm run lint:check -w backend"
+      "npm run lint:fix -w backend"
     ],
     "apps/backend/**/*.{ts,tsx}": [
       "sh -c 'npm run lint:types -w backend'"
     ],
     "apps/frontend/**/*.{js,jsx,ts,tsx}": [
-      "npm run lint:check -w frontend"
+      "npm run lint:fix -w frontend"
     ],
     "apps/frontend/**/*.{ts,tsx}": [
       "sh -c 'npm run lint:types -w frontend'"
     ],
     "packages/database/**/*.{js,jsx,ts,tsx}": [
-      "npm run lint:check -w @repo/database"
+      "npm run lint:fix -w @repo/database"
     ],
     "packages/database/**/*.{ts,tsx}": [
       "sh -c 'npm run lint:types -w @repo/database'"
     ],
     "packages/ui/**/*.{js,jsx,ts,tsx}": [
-      "npm run lint:check -w @repo/ui"
+      "npm run lint:fix -w @repo/ui"
     ],
     "packages/ui/**/*.{ts,tsx}": [
       "sh -c 'npm run lint:types -w @repo/ui'"
     ],
     "*.{js,jsx,ts,tsx,md,html,css}": [
-      "npm run format:check"
+      "npm run format:write"
     ]
   },
   "devDependencies": {
