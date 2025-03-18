@@ -31,12 +31,12 @@ describe("Auth API", () => {
     process.env.JWT_REFRESH_TOKEN_COOKIE_KEY = "refreshToken";
   });
 
-  describe("POST /send-otp", () => {
+  describe("POST /otp/send", () => {
     it("should send an OTP successfully", async () => {
       const phoneNumber = "1234567890";
 
       const res = await supertest(createServer())
-        .post("/api/v1/auth/send-otp")
+        .post("/api/v1/auth/otp/send")
         .set("Content-Type", "application/json")
         .send({ phoneNumber });
 
@@ -56,14 +56,14 @@ describe("Auth API", () => {
 
     it("should return 400 if phoneNumber is missing", async () => {
       const res = await supertest(createServer())
-        .post("/api/v1/auth/send-otp")
+        .post("/api/v1/auth/otp/send")
         .send({});
 
       expect(res.status).toBe(400);
     });
   });
 
-  describe("POST /auth/verify-otp", () => {
+  describe("POST /auth/otp/verify", () => {
     it("should verify OTP, create user if not exists, and return tokens", async () => {
       const phoneNumber = "1234567890";
       const otpCode = "123456";
@@ -76,7 +76,7 @@ describe("Auth API", () => {
       });
 
       const response = await supertest(createServer())
-        .post("/api/v1/auth/verify-otp")
+        .post("/api/v1/auth/otp/verify")
         .send({ phoneNumber, otp: otpCode });
 
       expect(response.status).toBe(201);
@@ -118,7 +118,7 @@ describe("Auth API", () => {
       });
 
       const response = await supertest(createServer())
-        .post("/api/v1/auth/verify-otp")
+        .post("/api/v1/auth/otp/verify")
         .send({ phoneNumber, otp: otpCode });
 
       expect(response.status).toBe(401);
@@ -137,7 +137,7 @@ describe("Auth API", () => {
       });
 
       const response = await supertest(createServer())
-        .post("/api/v1/auth/verify-otp")
+        .post("/api/v1/auth/otp/verify")
         .send({ phoneNumber, otp: otpCode });
 
       expect(response.status).toBe(401);
@@ -156,7 +156,7 @@ describe("Auth API", () => {
       });
 
       const response = await supertest(createServer())
-        .post("/api/v1/auth/verify-otp")
+        .post("/api/v1/auth/otp/verify")
         .send({ phoneNumber, otp: "123456" });
 
       expect(response.status).toBe(401);
