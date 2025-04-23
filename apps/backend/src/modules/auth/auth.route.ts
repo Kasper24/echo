@@ -28,7 +28,7 @@ authRouter.post(
   "/otp/send",
   sendOtpLimiter,
   validateHandler(sendOtpSchema),
-  sendOtpController,
+  sendOtpController
 );
 
 const verifyOtplimiter = rateLimitHandler({
@@ -40,7 +40,7 @@ const verifyOtplimiter = rateLimitHandler({
 authRouter.post(
   "/otp/status",
   validateHandler(statusOtpSchema),
-  checkOtpStatusController,
+  checkOtpStatusController
 );
 
 authRouter.post(
@@ -53,7 +53,7 @@ authRouter.post(
 authRouter.get(
   "/refresh-token",
   validateHandler(refreshTokenSchema),
-  refreshTokenController,
+  refreshTokenController
 );
 
 authRouter.get("/logout", logoutController);

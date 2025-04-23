@@ -14,8 +14,8 @@ export const createServer = (): Express => {
     .use(
       morgan(
         `:remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]`,
-        { immediate: true },
-      ),
+        { immediate: true }
+      )
     )
     .use(express.urlencoded({ extended: true }))
     .use(express.json())
@@ -25,7 +25,7 @@ export const createServer = (): Express => {
       rateLimitHandler({
         timeSpan: process.env.WINDOW_SIZE_IN_MINUTES,
         limit: process.env.MAX_NUMBER_OF_REQUESTS_PER_WINDOW_SIZE,
-      }),
+      })
     )
     .get("/healthcheck", (_req, res) => {
       res.json({
