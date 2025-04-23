@@ -12,35 +12,35 @@ import { friendsSchema } from "./friends.schema";
 
 const friendsRouter = Router();
 
-friendsRouter.get("/", (req, res) => {
-  getFriendsController(req as AuthenticatedRequest, res as Response);
+friendsRouter.get("/", async (req, res) => {
+  await getFriendsController(req as AuthenticatedRequest, res as Response);
 });
 
-friendsRouter.post("/:friendId", validateHandler(friendsSchema), (req, res) => {
-  addFriendController(req as AuthenticatedRequest, res as Response);
+friendsRouter.post("/:friendId", validateHandler(friendsSchema), async (req, res) => {
+  await addFriendController(req as AuthenticatedRequest, res as Response);
 });
 
 friendsRouter.delete(
   "/:friendId",
   validateHandler(friendsSchema),
-  (req, res) => {
-    deleteFriendController(req as AuthenticatedRequest, res as Response);
+  async (req, res) => {
+    await deleteFriendController(req as AuthenticatedRequest, res as Response);
   },
 );
 
 friendsRouter.post(
   "/:friendId/accept",
   validateHandler(friendsSchema),
-  (req, res) => {
-    acceptFriendRequestController(req as AuthenticatedRequest, res as Response);
+  async (req, res) => {
+    await acceptFriendRequestController(req as AuthenticatedRequest, res as Response);
   },
 );
 
 friendsRouter.post(
   "/:friendId/deny",
   validateHandler(friendsSchema),
-  (req, res) => {
-    denyFriendRequestController(req as AuthenticatedRequest, res as Response);
+  async (req, res) => {
+    await denyFriendRequestController(req as AuthenticatedRequest, res as Response);
   },
 );
 
