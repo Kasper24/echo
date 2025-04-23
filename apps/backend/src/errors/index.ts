@@ -13,25 +13,21 @@ export class GenericError extends Error {
   }
 }
 
-export class AuthError extends GenericError {
-  constructor(message: string) {
-    super(ReasonPhrases.UNAUTHORIZED, StatusCodes.UNAUTHORIZED, message);
-  }
-}
-
 export class BadRequestError extends GenericError {
   constructor(message: string) {
     super(ReasonPhrases.BAD_REQUEST, StatusCodes.BAD_REQUEST, message);
   }
 }
 
-export class ServerError extends GenericError {
+export class AuthError extends GenericError {
   constructor(message: string) {
-    super(
-      ReasonPhrases.INTERNAL_SERVER_ERROR,
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      message,
-    );
+    super(ReasonPhrases.UNAUTHORIZED, StatusCodes.UNAUTHORIZED, message);
+  }
+}
+
+export class NotFoundError extends GenericError {
+  constructor(message: string) {
+    super(ReasonPhrases.NOT_FOUND, StatusCodes.NOT_FOUND, message);
   }
 }
 
@@ -40,13 +36,17 @@ export class RateLimitError extends GenericError {
     super(
       ReasonPhrases.TOO_MANY_REQUESTS,
       StatusCodes.TOO_MANY_REQUESTS,
-      message,
+      message
     );
   }
 }
 
-export class NotFoundError extends GenericError {
+export class ServerError extends GenericError {
   constructor(message: string) {
-    super(ReasonPhrases.NOT_FOUND, StatusCodes.NOT_FOUND, message);
+    super(
+      ReasonPhrases.INTERNAL_SERVER_ERROR,
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      message
+    );
   }
 }
