@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const getChatDetailsSchema = z.object({
   params: z.object({
-    id: z.coerce.number().int(),
+    chatId: z.coerce.number().int(),
   }),
   query: z.object({
     page: z.coerce.number().positive().int().default(1),

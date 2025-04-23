@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { StatusCodes } from "http-status-codes";
-import { getChats, getChatDetails } from "./chat.service";
+import { getChats, getChatDetails, getChatMessages } from "./chat.service";
 import { AuthenticatedRequest } from "@repo/backend/middlewares/auth";
 
 const getChatsController = async (req: AuthenticatedRequest, res: Response) => {
@@ -10,17 +10,30 @@ const getChatsController = async (req: AuthenticatedRequest, res: Response) => {
 
 const getChatDetailsController = async (
   req: AuthenticatedRequest,
-  res: Response,
+  res: Response
+) => {
+  const { chatId } = req.params;
+  const chatDetails = await getChatDetails(req.userId, parseInt(chatId));
+  res.status(StatusCodes.OK).json({ ...chatDetails });
+};
+
+const getChatMessagesController = async (
+  req: AuthenticatedRequest,
+  res: Response
 ) => {
   const { chatId } = req.params;
   const { page, limit } = req.query;
-  const chatDetails = await getChatDetails(
+  const chatMessages = await getChatMessages(
     req.userId,
     parseInt(chatId),
     parseInt(page as string),
-    parseInt(limit as string),
+    parseInt(limit as string)
   );
-  res.status(StatusCodes.OK).json({ chatDetails });
+  res.status(StatusCodes.OK).json({ ...chatMessages });
 };
 
-export { getChatsController, getChatDetailsController };
+export {
+  getChatsController,
+  getChatDetailsController,
+  getChatMessagesController,
+};
