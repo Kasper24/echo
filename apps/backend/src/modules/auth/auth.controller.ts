@@ -38,7 +38,9 @@ const verifyOtpController = async (req: Request, res: Response) => {
     sameSite: "lax",
     maxAge: process.env.JWT_REFRESH_TOKEN_MAX_AGE,
   });
-  res.status(StatusCodes.CREATED).json({ accessToken });
+  res.status(StatusCodes.CREATED).json({});
+};
+
 const verifyController = async (req: Request, res: Response) => {
   const accessToken = req.cookies[process.env.JWT_ACCESS_TOKEN_COOKIE_KEY];
   await verify(accessToken);
@@ -47,14 +49,20 @@ const verifyController = async (req: Request, res: Response) => {
 
 const refreshTokenController = async (req: Request, res: Response) => {
   const refreshToken = req.cookies[process.env.JWT_REFRESH_TOKEN_COOKIE_KEY];
-  const accessToken = await refreshAccessToken(refreshToken);
+  const { accessToken } = await refreshAccessToken(refreshToken);
   res.cookie(process.env.JWT_ACCESS_TOKEN_COOKIE_KEY, accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: process.env.JWT_ACCESS_TOKEN_MAX_AGE,
   });
-  res.status(StatusCodes.OK).json({ accessToken });
+  // res.cookie(process.env.JWT_REFRESH_TOKEN_COOKIE_KEY, newRefreshToken, {
+  //   httpOnly: true,
+  //   secure: process.env.NODE_ENV === "production",
+  //   sameSite: "lax",
+  //   maxAge: process.env.JWT_REFRESH_TOKEN_MAX_AGE,
+  // });
+  res.status(StatusCodes.CREATED).json({});
 };
 
 const logoutController = async (req: Request, res: Response) => {
