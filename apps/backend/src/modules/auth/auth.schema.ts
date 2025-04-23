@@ -18,10 +18,22 @@ const verifyOtpSchema = sendOtpSchema.extend({
   }),
 });
 
+const verifySchema = z.object({
+  cookies: z.object({
+    accessToken: z.string().min(1),
+  }),
+});
+
 const refreshTokenSchema = z.object({
   cookies: z.object({
     refreshToken: z.string().min(1),
   }),
 });
 
-export { sendOtpSchema, statusOtpSchema, verifyOtpSchema, refreshTokenSchema };
+export {
+  sendOtpSchema,
+  statusOtpSchema,
+  verifyOtpSchema,
+  verifySchema,
+  refreshTokenSchema,
+};

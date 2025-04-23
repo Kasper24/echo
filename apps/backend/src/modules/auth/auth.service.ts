@@ -8,6 +8,7 @@ import { AuthError } from "@repo/backend/errors";
 import {
   jwtSignAccessToken,
   jwtSignRefreshToken,
+  jwtVerifyAccessToken,
   jwtVerifyRefreshToken,
 } from "@repo/backend/utils/jwt";
 
@@ -97,6 +98,13 @@ const verifyOtp = async (phoneNumber: string, otp: string) => {
   return { accessToken, refreshToken };
 };
 
+const verify = async (accessToken: string) => {
+  const [error] = await attempt(() => jwtVerifyAccessToken(accessToken));
+  if (error) throw new AuthError("Invalid access token.");
+
+  return true;
+};
+
 const refreshAccessToken = async (refreshToken: string) => {
   try {
     const { userId } = jwtVerifyRefreshToken(refreshToken);
@@ -135,4 +143,11 @@ const logout = async (refreshToken: string) => {
   }
 };
 
-export { sendOtp, checkOtpStatus, verifyOtp, refreshAccessToken, logout };
+export {
+  sendOtp,
+  checkOtpStatus,
+  verifyOtp,
+  verify,
+  refreshAccessToken,
+  logout,
+};

@@ -4,6 +4,7 @@ import {
   sendOtp,
   checkOtpStatus,
   verifyOtp,
+  verify,
   refreshAccessToken,
   logout,
 } from "./auth.service";
@@ -38,6 +39,10 @@ const verifyOtpController = async (req: Request, res: Response) => {
     maxAge: process.env.JWT_REFRESH_TOKEN_MAX_AGE,
   });
   res.status(StatusCodes.CREATED).json({ accessToken });
+const verifyController = async (req: Request, res: Response) => {
+  const accessToken = req.cookies[process.env.JWT_ACCESS_TOKEN_COOKIE_KEY];
+  await verify(accessToken);
+  res.status(StatusCodes.OK).json({});
 };
 
 const refreshTokenController = async (req: Request, res: Response) => {
@@ -64,6 +69,7 @@ export {
   sendOtpController,
   checkOtpStatusController,
   verifyOtpController,
+  verifyController,
   refreshTokenController,
   logoutController,
 };

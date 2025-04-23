@@ -5,12 +5,14 @@ import {
   sendOtpController,
   checkOtpStatusController,
   verifyOtpController,
+  verifyController,
   refreshTokenController,
   logoutController,
 } from "./auth.controller";
 import {
   sendOtpSchema,
   verifyOtpSchema,
+  verifySchema,
   refreshTokenSchema,
   statusOtpSchema,
 } from "./auth.schema";
@@ -47,8 +49,10 @@ authRouter.post(
   "/otp/verify",
   verifyOtplimiter,
   validateHandler(verifyOtpSchema),
-  verifyOtpController,
+  verifyOtpController
 );
+
+authRouter.get("/verify", validateHandler(verifySchema), verifyController);
 
 authRouter.get(
   "/refresh-token",
