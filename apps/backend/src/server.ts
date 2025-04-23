@@ -34,7 +34,7 @@ export const createServer = (): Express => {
         timestamp: Date.now(),
       });
     })
-    .use("/api/v1", rootRouter)
+    .all("/api/v1", rootRouter)
     .all("/*splat", () => {
       throw new NotFoundError("You look a little lost.");
     })
