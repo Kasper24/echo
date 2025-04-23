@@ -11,10 +11,11 @@ import {
   jwtVerifyAccessToken,
   jwtVerifyRefreshToken,
 } from "@repo/backend/utils/jwt";
+import { attempt } from "@repo/backend/utils";
 
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN,
+  process.env.TWILIO_AUTH_TOKEN
 );
 
 const sendOtp = async (phoneNumber: string) => {
@@ -33,11 +34,11 @@ const sendOtp = async (phoneNumber: string) => {
       set: { otp, expiresAt, updatedAt: new Date() },
     });
 
-  await twilioClient.messages.create({
-    body: `Your OTP is: ${otp}`,
-    from: process.env.TWILIO_PHONE_NUMBER,
-    to: `+${phoneNumber}`,
-  });
+  // await twilioClient.messages.create({
+  //   body: `Your OTP is: ${otp}`,
+  //   from: process.env.TWILIO_PHONE_NUMBER,
+  //   to: `+${phoneNumber}`,
+  // });
 };
 
 const checkOtpStatus = async (phoneNumber: string) => {
@@ -106,41 +107,36 @@ const verify = async (accessToken: string) => {
 };
 
 const refreshAccessToken = async (refreshToken: string) => {
-  try {
-    const { userId } = jwtVerifyRefreshToken(refreshToken);
-    if (!userId) throw new AuthError("Invalid refresh token");
+  const [error, data] = await attempt(() =>
+    jwtVerifyRefreshToken(refreshToken)
+  );
+  if (error) throw new AuthError(error.message);
 
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, userId),
-    });
-    if (!user) throw new AuthError("Invalid refresh token");
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, data.userId),
+  });
+  if (!user) throw new AuthError("Invalid refresh token");
 
-    const storedToken = await db.query.refreshTokens.findFirst({
-      where: eq(refreshTokens.userId, userId),
-    });
-    if (!storedToken) throw new AuthError("Invalid refresh token");
+  const storedToken = await db.query.refreshTokens.findFirst({
+    where: eq(refreshTokens.userId, data.userId),
+  });
+  if (!storedToken) throw new AuthError("Invalid refresh token.");
 
-    const isTokenValid = await argon2.verify(storedToken.token, refreshToken);
-    if (!isTokenValid) {
-      throw new AuthError("Invalid refresh token");
-    }
+  const isTokenValid = await argon2.verify(storedToken.token, refreshToken);
+  if (!isTokenValid) throw new AuthError("isTokenValid");
 
-    return jwtSignAccessToken({ userId: user.id });
-  } catch (error) {
-    if (error instanceof Error) throw new AuthError(error.message);
-    else throw new AuthError("Invalid refresh token");
-  }
+  const accessToken = jwtSignAccessToken({ userId: user.id });
+
+  return { accessToken };
 };
 
 const logout = async (refreshToken: string) => {
-  try {
-    const { userId } = jwtVerifyRefreshToken(refreshToken);
-    if (!userId) return;
+  const [error, data] = await attempt(() =>
+    jwtVerifyRefreshToken(refreshToken)
+  );
+  if (error) return;
 
-    await db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
-  } catch {
-    return;
-  }
+  await db.delete(refreshTokens).where(eq(refreshTokens.userId, data.userId));
 };
 
 export {
