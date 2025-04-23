@@ -5,7 +5,7 @@ import { dbPush, dbReset, dbSeed, dbWaitForConnection } from "@repo/database";
 envValidate();
 await dbWaitForConnection();
 
-if (process.env.NODE_ENV === "development" && process.env.RESET_DB === true) {
+if (process.env.NODE_ENV === "development" && process.env.RESET_DB === "true") {
   await dbPush();
   await dbReset();
   await dbSeed();
