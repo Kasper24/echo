@@ -75,10 +75,9 @@ const envSchema = z.object({
 });
 
 const envValidate = () => {
-  try {
-    envSchema.parse(process.env);
-  } catch (error) {
-    if (error instanceof ZodError) console.error(error.errors);
+  const { error } = envSchema.safeParse(process.env);
+  if (error) {
+    console.error(error.errors);
     process.exit(1);
   }
 };
@@ -87,7 +86,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-    interface ProcessEnv extends z.infer<typeof environmentVariableSchema> {}
+    interface ProcessEnv extends z.infer<typeof envSchema> {}
   }
 }
 
