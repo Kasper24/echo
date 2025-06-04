@@ -1,0 +1,42 @@
+{
+  "name": "@repo/typiclient",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "dist/**",
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/es/index.d.ts",
+        "default": "./dist/es/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.cts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "build": "bunchee",
+    "dev": "bunchee --watch",
+    "test": "jest",
+    "lint:types": "tsc --noEmit",
+    "lint:check": "eslint --max-warnings=0",
+    "lint:fix": "eslint --fix"
+  },
+  "dependencies": {
+    "@repo/typiserver": "*",
+    "superjson": "^2.2.2",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "bunchee": "^6.5.1",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3"
+  }
+}
