@@ -2,9 +2,9 @@ import express, { type Express } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import rootRouter from "@repo/backend/modules";
-import errorHandler from "@repo/backend/middlewares/error";
-import rateLimitMiddleware from "@repo/backend/middlewares/rate-limit";
+import rootRouter from "@repo/api/modules";
+import errorHandler from "@repo/api/middlewares/error";
+import rateLimitMiddleware from "@repo/api/middlewares/rate-limit";
 
 export const createServer = (): Express => {
   const app = express();

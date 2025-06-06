@@ -1,6 +1,6 @@
 import { Request } from "express";
-import { jwtVerifyAccessToken } from "@repo/backend/utils/jwt";
-import { attempt } from "@repo/backend/utils";
+import { jwtVerifyAccessToken } from "@repo/api/utils/jwt";
+import { attempt } from "@repo/api/utils";
 import { RouteHandlerContext } from "@repo/typiserver";
 
 export interface AuthenticatedRequest extends Request {

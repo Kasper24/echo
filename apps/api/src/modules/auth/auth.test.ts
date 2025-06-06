@@ -6,10 +6,10 @@ import { jest, describe, it, expect, beforeEach } from "@jest/globals";
 import supertest from "supertest";
 import { eq } from "drizzle-orm";
 import argon2 from "argon2";
-import { createServer } from "@repo/backend/server";
+import { createServer } from "@repo/api/server";
 import { db } from "@repo/database";
 import { otps, refreshTokens, users } from "@repo/database/schema";
-import { jwtSignRefreshToken } from "@repo/backend/utils/jwt";
+import { jwtSignRefreshToken } from "@repo/api/utils/jwt";
 
 jest.mock("twilio", () => {
   return jest.fn(() => ({
@@ -102,7 +102,7 @@ describe("Auth API", () => {
       const endIndex = cookie[0].indexOf(";", startIndex);
       const extractedToken = cookie[0].slice(startIndex, endIndex);
       expect(await argon2.verify(refreshTokenRow!.token, extractedToken)).toBe(
-        true,
+        true
       );
     });
 
@@ -194,7 +194,7 @@ describe("Auth API", () => {
         .get("/api/v1/auth/refresh-token")
         .set(
           "Cookie",
-          `${process.env.JWT_REFRESH_TOKEN_COOKIE_KEY}=invalidToken`,
+          `${process.env.JWT_REFRESH_TOKEN_COOKIE_KEY}=invalidToken`
         );
 
       expect(res.status).toBe(401);
@@ -218,7 +218,7 @@ describe("Auth API", () => {
         .get("/api/v1/auth/refresh-token")
         .set(
           "Cookie",
-          `${process.env.JWT_REFRESH_TOKEN_COOKIE_KEY}=${refreshToken}`,
+          `${process.env.JWT_REFRESH_TOKEN_COOKIE_KEY}=${refreshToken}`
         );
 
       expect(res.status).toBe(401);
@@ -245,7 +245,7 @@ describe("Auth API", () => {
         .get("/api/v1/auth/refresh-token")
         .set(
           "Cookie",
-          `${process.env.JWT_REFRESH_TOKEN_COOKIE_KEY}=${refreshToken}`,
+          `${process.env.JWT_REFRESH_TOKEN_COOKIE_KEY}=${refreshToken}`
         );
 
       expect(res.status).toBe(401);
@@ -267,7 +267,7 @@ describe("Auth API", () => {
         .get("/api/v1/auth/refresh-token")
         .set(
           "Cookie",
-          `${process.env.JWT_REFRESH_TOKEN_COOKIE_KEY}=${refreshToken}`,
+          `${process.env.JWT_REFRESH_TOKEN_COOKIE_KEY}=${refreshToken}`
         );
 
       expect(res.status).toBe(401);
@@ -298,7 +298,7 @@ describe("Auth API", () => {
 
       expect(
         cookieHeader.includes("Max-Age=0") ||
-          cookieHeader.includes("Expires=Thu, 01 Jan 1970"),
+          cookieHeader.includes("Expires=Thu, 01 Jan 1970")
       ).toBe(true);
 
       expect(cookieHeader.includes("refreshToken=;")).toBeDefined();

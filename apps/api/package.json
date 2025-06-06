@@ -1,5 +1,5 @@
 {
-  "name": "@repo/backend",
+  "name": "@repo/api",
   "version": "0.0.0",
   "type": "module",
   "private": true,
@@ -21,7 +21,7 @@
   "jest": {
     "preset": "@repo/jest-presets/node",
     "moduleNameMapper": {
-      "^@repo/backend/(.*)$": "<rootDir>/src/$1"
+      "^@repo/api/(.*)$": "<rootDir>/src/$1"
     },
     "setupFilesAfterEnv": [
       "<rootDir>/jest.setup.ts"

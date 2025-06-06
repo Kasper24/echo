@@ -7,8 +7,8 @@ import {
   createTypiRoute,
   createTypiRouteHandler,
 } from "@repo/typiserver";
-import { attempt } from "@repo/backend/utils";
-import rateLimitMiddleware from "@repo/backend/middlewares/rate-limit";
+import { attempt } from "@repo/api/utils";
+import rateLimitMiddleware from "@repo/api/middlewares/rate-limit";
 import { db } from "@repo/database";
 import { otps, refreshTokens, users } from "@repo/database/schema";
 import {
@@ -16,7 +16,7 @@ import {
   jwtSignRefreshToken,
   jwtVerifyAccessToken,
   jwtVerifyRefreshToken,
-} from "@repo/backend/utils/jwt";
+} from "@repo/api/utils/jwt";
 
 const authRouter = createTypiRouter({
   "/otp/send": createTypiRoute({

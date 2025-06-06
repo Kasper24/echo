@@ -1,5 +1,5 @@
-import redis from "@repo/backend/redis";
-import { parseTimeSpan, type TimeSpan } from "@repo/backend/utils/time";
+import redis from "@repo/api/redis";
+import { parseTimeSpan, type TimeSpan } from "@repo/api/utils/time";
 import { RouteHandlerContext } from "@repo/typiserver";
 
 const rateLimitMiddleware = ({

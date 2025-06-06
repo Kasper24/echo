@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/pglite";
 import { jest, afterEach, beforeAll, afterAll } from "@jest/globals";
 import * as schema from "@repo/database/schema";
 import { db, dbPush, dbReset } from "@repo/database";
-import redis from "@repo/backend/redis";
+import redis from "@repo/api/redis";
 
 jest.mock("@repo/database", () => {
   const originalModule =
@@ -18,10 +18,10 @@ jest.mock("@repo/database", () => {
   };
 });
 
-jest.mock("@repo/backend/middlewares/rate-limit", () => {
+jest.mock("@repo/api/middlewares/rate-limit", () => {
   const originalModule = jest.requireActual<
-    typeof import("@repo/backend/middlewares/rate-limit")
-  >("@repo/backend/middlewares/rate-limit");
+    typeof import("@repo/api/middlewares/rate-limit")
+  >("@repo/api/middlewares/rate-limit");
 
   const rateLimitMiddleware = jest
     .fn()

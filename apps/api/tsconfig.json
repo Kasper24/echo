@@ -7,7 +7,7 @@
     "emitDeclarationOnly": true,
     "noEmit": false,
     "paths": {
-      "@repo/backend/*": ["./src/*"]
+      "@repo/api/*": ["./src/*"]
     }
   },
   "exclude": ["node_modules"],

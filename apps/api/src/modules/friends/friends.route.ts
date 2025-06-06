@@ -6,7 +6,7 @@ import {
 } from "@repo/typiserver";
 import { db } from "@repo/database";
 import { friends, users } from "@repo/database/schema";
-import authMiddleware from "@repo/backend/middlewares/auth";
+import authMiddleware from "@repo/api/middlewares/auth";
 
 const friendsRouter = createTypiRouter({
   "/": createTypiRoute({

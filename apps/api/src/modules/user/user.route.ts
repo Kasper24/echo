@@ -8,7 +8,7 @@ import {
 } from "@repo/typiserver";
 import { db } from "@repo/database";
 import { users } from "@repo/database/schema";
-import authMiddleware from "@repo/backend/middlewares/auth";
+import authMiddleware from "@repo/api/middlewares/auth";
 
 const userRouter = createTypiRouter({
   "/": createTypiRoute({

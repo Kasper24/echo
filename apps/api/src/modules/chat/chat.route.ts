@@ -15,7 +15,7 @@ import {
   messages,
   users,
 } from "@repo/database/schema";
-import authMiddleware from "@repo/backend/middlewares/auth";
+import authMiddleware from "@repo/api/middlewares/auth";
 
 const enrichDirectChat = async <T extends Chat>(chat: T, userId: number) => {
   if (chat.type === "direct") {
