@@ -7,8 +7,9 @@ export const friendStatusEnum = pgEnum("friend_status", [
 ]);
 export const chatTypeEnum = pgEnum("chat_type", ["direct", "group"]);
 export const userRoleEnum = pgEnum("user_role", ["admin", "user"]);
-export const messageStatusEnum = pgEnum("message_status", [
-  "sent",
-  "delivered",
-  "read",
+export const messageAttachmentTypeEnum = pgEnum("attachment_type", [
+  "image",
+  "video",
+  "audio",
+  "file",
 ]);

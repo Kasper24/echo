@@ -57,28 +57,32 @@ const dbReset = async (dbToReset?: DbType) => {
   await reset(dbToReset, schema);
 };
 
+const randomFileName = (ext: string) => {
+  return `${faker.system.fileName().split(".")[0]}.${ext}`;
+};
+
 const dbSeed = async (dbToSeed?: DbType) => {
   dbToSeed ??= db;
 
-  const NUM_USERS = 100;
-  const NUM_CHATS = 50;
+  const NUM_USERS = 50;
+  const NUM_CHATS = 200;
   const MAX_MESSAGES_PER_CHAT = 50;
   const FRIENDSHIP_DENSITY = 0.1; // 10% chance of friendship between any two users
   const BLOCK_DENSITY = 0.02; // 2% chance of blocking
 
   try {
+    faker.seed(2000);
+
     // 1. Generate Users
     console.log("Generating users...");
     const userRecords = [];
 
-    faker.seed(2000);
-
     for (let i = 0; i < NUM_USERS; i++) {
       const user = {
         phoneNumber: faker.string.numeric({ length: 10 }),
-        displayName: faker.person.fullName(),
-        profilePicture: faker.image.avatar(),
-        about: faker.lorem.sentence(),
+        name: faker.person.fullName(),
+        picture: faker.image.avatar(),
+        description: faker.lorem.sentence(),
         status: faker.datatype.boolean(),
         lastSeen: faker.date.recent(),
       };
@@ -155,7 +159,7 @@ const dbSeed = async (dbToSeed?: DbType) => {
         type: "direct" as (typeof schema.chatTypeEnum.enumValues)[number],
         name: "Direct Chat",
         description: "",
-        picture: "",
+        picture: faker.image.url(),
       });
     }
 
@@ -182,7 +186,7 @@ const dbSeed = async (dbToSeed?: DbType) => {
       userId: number;
       chatId: number;
       role: (typeof schema.userRoleEnum.enumValues)[number];
-      joinedAt: Date;
+      createdAt: Date;
     }[] = [];
 
     for (const chat of insertedChats) {
@@ -195,7 +199,7 @@ const dbSeed = async (dbToSeed?: DbType) => {
             userId: user.id,
             chatId: chat.id,
             role: "user" as (typeof schema.userRoleEnum.enumValues)[number],
-            joinedAt: faker.date.recent(),
+            createdAt: faker.date.recent(),
           });
         });
       } else {
@@ -215,7 +219,7 @@ const dbSeed = async (dbToSeed?: DbType) => {
               index === 0
                 ? "admin"
                 : ("user" as (typeof schema.userRoleEnum.enumValues)[number]),
-            joinedAt: faker.date.recent({ days: 30 }),
+            createdAt: faker.date.recent({ days: 30 }),
           });
         });
       }
@@ -258,7 +262,7 @@ const dbSeed = async (dbToSeed?: DbType) => {
           chatId: chat.id,
           senderId: sender.userId,
           content: faker.lorem.paragraph(),
-          sentAt: currentDate,
+          createdAt: currentDate,
         });
       }
     }
@@ -268,6 +272,54 @@ const dbSeed = async (dbToSeed?: DbType) => {
       .values(messageRecords)
       .returning();
     console.log(`Created ${insertedMessages.length} messages`);
+
+    console.log("Generating message attachments...");
+    const attachmentTypes = ["image", "video", "audio", "file"];
+    const messageAttachments = [];
+
+    for (const message of insertedMessages) {
+      if (Math.random() < 0.3) {
+        // 30% of messages get attachments
+        const numAttachments = faker.number.int({ min: 1, max: 3 });
+
+        for (let i = 0; i < numAttachments; i++) {
+          const type = faker.helpers.arrayElement(attachmentTypes);
+          let url = "";
+          let name = "";
+
+          switch (type) {
+            case "image":
+              url = faker.image.url();
+              name = randomFileName("jpg");
+              break;
+            case "video":
+              url = faker.internet.url() + "/video.mp4";
+              name = randomFileName("mp4");
+              break;
+            case "audio":
+              url = faker.internet.url() + "/audio.mp3";
+              name = randomFileName("mp3");
+              break;
+            case "file":
+              url = faker.internet.url() + "/file.pdf";
+              name = randomFileName("pdf");
+              break;
+          }
+
+          messageAttachments.push({
+            messageId: message.id,
+            type,
+            url,
+            name,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        }
+      }
+    }
+
+    // await db.insert(schema.messageAttachments).values(messageAttachments);
+    console.log(`Inserted ${messageAttachments.length} message attachments`);
 
     // 8. Generate Message Read Receipts
     console.log("Generating message read receipts...");
@@ -284,25 +336,34 @@ const dbSeed = async (dbToSeed?: DbType) => {
         );
 
       for (const participant of participants) {
-        const statuses = ["sent", "delivered", "read"] as Array<
-          (typeof schema.messageStatusEnum.enumValues)[number]
-        >;
-        const status = faker.helpers.arrayElement(statuses);
+        const received = faker.datatype.boolean();
+        const receivedAt = received
+          ? faker.date.between({
+              from: message.createdAt,
+              to: new Date(
+                message.createdAt.getTime() +
+                  faker.number.int({ min: 60000, max: 86400000 })
+              ),
+            })
+          : null;
+
+        const read = received && faker.datatype.boolean();
+        const readAt = read
+          ? faker.date.between({
+              from: receivedAt!,
+              to: new Date(
+                receivedAt!.getTime() +
+                  faker.number.int({ min: 60000, max: 86400000 })
+              ),
+            })
+          : null;
+
         readReceiptRecords.push({
           chatId: message.chatId,
           messageId: message.id,
           userId: participant.userId,
-          readAt:
-            status === "read"
-              ? faker.date.between({
-                  from: message.sentAt,
-                  to: new Date(
-                    message.sentAt.getTime() +
-                      faker.number.int({ min: 60000, max: 86400000 })
-                  ),
-                })
-              : null,
-          status,
+          receivedAt,
+          readAt,
         });
       }
     }
@@ -348,9 +409,9 @@ const dbSeed = async (dbToSeed?: DbType) => {
   //   dbToSeed.transaction(async (trx) => {
   //     await trx.insert(schema.users).values({
   //       phoneNumber: phoneNumber,
-  //       displayName: faker.person.firstName(),
-  //       profilePicture: faker.image.avatar(),
-  //       about: faker.lorem.paragraph(),
+  //       name: faker.person.firstName(),
+  //       picture: faker.image.avatar(),
+  //       description: faker.lorem.paragraph(),
   //       status: faker.datatype.boolean(),
   //       lastSeen: faker.date.recent(),
   //     });
@@ -402,14 +463,14 @@ const dbSeed = async (dbToSeed?: DbType) => {
   //     chatId: i,
   //     senderId: faker.number.int({ min: 1, max: 10 }),
   //     content: faker.lorem.paragraph(),
-  //     sentAt: faker.date.recent(),
+  //     createdAt: faker.date.recent(),
   //   });
 
   //   await dbToSeed.insert(schema.chatParticipants).values({
   //     userId: faker.number.int({ min: 1, max: 10 }),
   //     chatId: i,
   //     role: faker.helpers.arrayElement(["user", "admin"]),
-  //     joinedAt: faker.date.recent(),
+  //     createdAt: faker.date.recent(),
   //   });
   // }
 
@@ -417,8 +478,8 @@ const dbSeed = async (dbToSeed?: DbType) => {
   //   users: {
   //     columns: {
   //       phoneNumber: f.phoneNumber({ template: "##########" }),
-  //       about: f.loremIpsum(),
-  //       profilePicture: f.valuesFromArray({
+  //       description: f.loremIpsum(),
+  //       picture: f.valuesFromArray({
   //         values: images,
   //       }),
   //     },

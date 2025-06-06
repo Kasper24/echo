@@ -1,4 +1,5 @@
-import { pgTable, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, integer, text } from "drizzle-orm/pg-core";
+import { createSelectSchema } from "drizzle-zod";
 import { timeStamps } from "./base";
 import { chatTypeEnum, userRoleEnum } from "./enums";
 import { users } from "./users";
@@ -8,7 +9,7 @@ export const chats = pgTable("chats", {
   type: chatTypeEnum().notNull().default("direct"),
   name: text().notNull(),
   description: text().notNull(),
-  picture: text().notNull(),
+  picture: text(),
   ...timeStamps(false),
 });
 
@@ -21,12 +22,13 @@ export const chatParticipants = pgTable("chat_participants", {
     .references(() => chats.id)
     .notNull(),
   role: userRoleEnum().notNull().default("user"),
-  joinedAt: timestamp().notNull().defaultNow(),
   ...timeStamps(false),
 });
 
 export type NewChat = typeof chats.$inferInsert;
 export type Chat = typeof chats.$inferSelect;
+export const chatSelectSchema = createSelectSchema(chats);
 
 export type NewChatParticipant = typeof chatParticipants.$inferInsert;
 export type ChatParticipant = typeof chatParticipants.$inferSelect;
+export const chatParticipantSelectSchema = createSelectSchema(chatParticipants);

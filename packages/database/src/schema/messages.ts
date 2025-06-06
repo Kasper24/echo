@@ -1,8 +1,9 @@
 import { pgTable, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { createSelectSchema } from "drizzle-zod";
 import { timeStamps } from "./base";
 import { chats } from "./chats";
 import { users } from "./users";
-import { messageStatusEnum } from "./enums";
+import { messageAttachmentTypeEnum } from "./enums";
 
 export const messages = pgTable("messages", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -19,7 +20,17 @@ export const messages = pgTable("messages", {
       onUpdate: "cascade",
     }),
   content: text().notNull(),
-  sentAt: timestamp().notNull().defaultNow(),
+  ...timeStamps(false),
+});
+
+export const messageAttachments = pgTable("message_attachments", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  messageId: integer()
+    .references(() => messages.id)
+    .notNull(),
+  type: messageAttachmentTypeEnum().notNull(),
+  name: text().notNull(),
+  url: text().notNull(),
   ...timeStamps(false),
 });
 
@@ -34,13 +45,20 @@ export const messageReadReceipts = pgTable("message_read_receipts", {
   userId: integer()
     .references(() => users.id)
     .notNull(),
+  receivedAt: timestamp(),
   readAt: timestamp(),
-  status: messageStatusEnum().notNull().default("sent"),
-  ...timeStamps(false),
 });
 
 export type NewMessage = typeof messages.$inferInsert;
 export type Message = typeof messages.$inferSelect;
+export const messageSelectSchema = createSelectSchema(messages);
+
+export type NewMessageAttachment = typeof messageAttachments.$inferInsert;
+export type MessageAttachment = typeof messageAttachments.$inferSelect;
+export const messageAttachmentSelectSchema =
+  createSelectSchema(messageAttachments);
 
 export type NewMessageReadReceipt = typeof messageReadReceipts.$inferInsert;
 export type MessageReadReceipt = typeof messageReadReceipts.$inferSelect;
+export const messageReadReceiptSelectSchema =
+  createSelectSchema(messageReadReceipts);
