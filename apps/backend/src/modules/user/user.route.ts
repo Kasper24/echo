@@ -1,17 +1,55 @@
-import { Router, Response } from "express";
-import { AuthenticatedRequest } from "@repo/backend/middlewares/auth";
-import { getUserController, updateUserController } from "./user.controller";
-import validateHandler from "@repo/backend/middlewares/validation";
-import { updateUserSchema } from "./user.schema";
+import { z } from "zod";
+import { and, eq } from "drizzle-orm";
+import { createUpdateSchema } from "drizzle-zod";
+import {
+  createTypiRoute,
+  createTypiRouteHandler,
+  createTypiRouter,
+} from "@repo/typiserver";
+import { db } from "@repo/database";
+import { users } from "@repo/database/schema";
+import authMiddleware from "@repo/backend/middlewares/auth";
 
-const userRouter = Router();
+const userRouter = createTypiRouter({
+  "/": createTypiRoute({
+    get: createTypiRouteHandler({
+      middlewares: [authMiddleware],
+      handler: async (ctx) => {
+        const me = await db.query.users.findFirst({
+          where: and(eq(users.id, ctx.data.userId)),
+        });
+        if (!me) return ctx.error("NOT_FOUND", "User not found.");
 
-userRouter.get("/", async (req, res) => {
-  await getUserController(req as AuthenticatedRequest, res as Response);
-});
+        return ctx.success({
+          ...me,
+        });
+      },
+    }),
+    patch: createTypiRouteHandler({
+      input: {
+        body: z.object({
+          updatedUser: createUpdateSchema(users),
+        }),
+      },
+      middlewares: [authMiddleware],
+      handler: async (ctx) => {
+        const user = await db
+          .update(users)
+          .set({
+            updatedAt: new Date(),
+            ...ctx.input.body.updatedUser,
+          })
+          .where(eq(users.id, ctx.data.userId))
+          .returning();
 
-userRouter.patch("/", validateHandler(updateUserSchema), async (req, res) => {
-  await updateUserController(req as AuthenticatedRequest, res as Response);
+        if (!user.length) return ctx.error("NOT_FOUND", "User not found.");
+
+        return ctx.success({
+          ...user[0],
+        });
+      },
+    }),
+  }),
 });
 
 export default userRouter;

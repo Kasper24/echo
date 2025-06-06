@@ -4,10 +4,12 @@
     "lib": ["ES2015"],
     "outDir": "./dist",
     "target": "es2017",
+    "emitDeclarationOnly": true,
+    "noEmit": false,
     "paths": {
       "@repo/backend/*": ["./src/*"]
     }
   },
   "exclude": ["node_modules"],
-  "include": ["."]
+  "include": ["./src"]
 }

@@ -23,7 +23,7 @@ jest.mock("@repo/backend/middlewares/rate-limit", () => {
     typeof import("@repo/backend/middlewares/rate-limit")
   >("@repo/backend/middlewares/rate-limit");
 
-  const rateLimitHandler = jest
+  const rateLimitMiddleware = jest
     .fn()
     .mockReturnValue((_: Request, __: Response, next: NextFunction) => {
       next();
@@ -32,7 +32,7 @@ jest.mock("@repo/backend/middlewares/rate-limit", () => {
   return {
     ...originalModule,
     __esModule: true,
-    rateLimitHandler,
+    rateLimitMiddleware,
   };
 });
 

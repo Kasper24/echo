@@ -2,10 +2,9 @@ import express, { type Express } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { NotFoundError } from "@repo/backend/errors";
 import rootRouter from "@repo/backend/modules";
 import errorHandler from "@repo/backend/middlewares/error";
-import rateLimitHandler from "@repo/backend/middlewares/rate-limit";
+import rateLimitMiddleware from "@repo/backend/middlewares/rate-limit";
 
 export const createServer = (): Express => {
   const app = express();
@@ -21,22 +20,15 @@ export const createServer = (): Express => {
     .use(express.json())
     .use(cookieParser())
     .use(cors({ origin: "http://localhost:3002", credentials: true }))
-    .use(
-      rateLimitHandler({
-        timeSpan: process.env.WINDOW_SIZE_IN_MINUTES,
-        limit: process.env.MAX_NUMBER_OF_REQUESTS_PER_WINDOW_SIZE,
-      })
-    )
-    .get("/healthcheck", (_req, res) => {
-      res.json({
-        message: "Server is running",
-        uptime: process.uptime(),
-        timestamp: Date.now(),
-      });
-    })
-    .all("/api/v1", rootRouter)
+    // .use(
+    //   rateLimitMiddleware({
+    //     timeSpan: process.env.WINDOW_SIZE_IN_MINUTES,
+    //     limit: process.env.MAX_NUMBER_OF_REQUESTS_PER_WINDOW_SIZE,
+    //   })
+    // )
+    .use("/api/v1", rootRouter.router)
     .all("/*splat", () => {
-      throw new NotFoundError("You look a little lost.");
+      throw new Error("You look a little lost.");
     })
     .use(errorHandler);
 

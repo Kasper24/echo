@@ -1,8 +1,13 @@
 {
-  "name": "backend",
+  "name": "@repo/backend",
   "version": "0.0.0",
   "type": "module",
   "private": true,
+  "exports": {
+    "./router": {
+      "types": "./dist/modules/index.d.ts"
+    }
+  },
   "scripts": {
     "start": "node dist/index.js",
     "predev": "docker compose -f ../../docker-compose.yml --profile redis up -d",
@@ -25,13 +30,13 @@
   "dependencies": {
     "@electric-sql/pglite": "^0.2.17",
     "@repo/database": "*",
+    "@repo/typiserver": "*",
     "argon2": "^0.41.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.40.0",
     "drizzle-zod": "^0.7.0",
     "express": "^5.0.1",
-    "http-status-codes": "^2.3.0",
     "ioredis": "^5.6.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
