@@ -1,9 +1,5 @@
 import { type TypiClient } from "./client";
-import {
-  MiddlewareHandlers,
-  RouteHandlerResponse,
-  type TypiRouter,
-} from "@repo/typiserver";
+import { RouteHandlerResponse, type TypiRouter } from "@repo/typiserver";
 import {
   ExtractRoutesOutputsByStatusCodes,
   RouteDefinition,

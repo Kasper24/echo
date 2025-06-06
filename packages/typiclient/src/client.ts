@@ -53,7 +53,7 @@ export class TypiClient {
     }) as any;
   }
 
-  private async executeRequest(path: string, method: HttpMethod, input: any) {
+  private buildUrl(path: string, input: any) {
     const url = new URL(path);
 
     if (input?.path) {
@@ -68,11 +68,19 @@ export class TypiClient {
       });
     }
 
-    let cookieHeader = null;
-    if (input?.cookies)
-      cookieHeader = Object.entries(input.cookies)
-        .map(([key, value]) => `${key}=${value}`)
-        .join("; ");
+    return url;
+  }
+
+  private buildCookieHeader(cookies: Record<string, string>) {
+    if (!cookies) return null;
+
+    return Object.entries(cookies)
+      .map(([key, value]) => `${key}=${value}`)
+      .join("; ");
+  }
+
+  private async buildHeaders(input: any) {
+    const cookieHeader = this.buildCookieHeader(input?.cookies);
 
     let headers = {
       "Content-Type": "application/json",
@@ -98,7 +106,13 @@ export class TypiClient {
       headers = { ...headers, ...Object.fromEntries(headerEntries) };
     }
 
-    let config: RequestInit = {
+    return headers;
+  }
+
+  private async buildRequestConfig(method: HttpMethod, input: any) {
+    const headers = await this.buildHeaders(input);
+
+    return {
       credentials: this.options?.credentials,
       method: method,
       headers: headers,
@@ -109,59 +123,118 @@ export class TypiClient {
       signal: this.options?.timeout
         ? AbortSignal.timeout(this.options.timeout)
         : undefined,
-    };
+    } as RequestInit;
+  }
 
-    const makeRequest = async (): Promise<any> => {
-      try {
-        for (const requestInterceptor of this.interceptors?.onRequest || []) {
-          const result = await requestInterceptor({
-            path: new URL(path).pathname,
-            config,
-          });
-          if (isRouteHandlerResponse(result)) {
-            return result;
-          } else if (result !== undefined) {
-            config = result;
-          }
-        }
-
-        let response = await fetch(url.toString(), config);
-
-        for (const interceptor of this.interceptors?.onResponse || []) {
-          const result = await interceptor({
-            path: new URL(path).pathname,
-            config,
-            response,
-            retry: makeRequest,
-          });
-          if (isRouteHandlerResponse(result)) {
-            return result;
-          }
-        }
-
-        const data = deserialize(await response.json());
-        const status = response.status as HttpStatusCode;
-        return {
-          status: getStatus(status)!.key,
-          data: data as any,
-          response: response,
-        };
-      } catch (error) {
-        for (const errorInterceptor of this.interceptors?.onError || []) {
-          const result = await errorInterceptor({
-            path: new URL(path).pathname,
-            config,
-            error,
-            retry: makeRequest,
-          });
-          if (isRouteHandlerResponse(result)) {
-            return result;
-          }
+  private async executeInterceptors(
+    url: URL,
+    config: RequestInit,
+    response?: Response,
+    error?: any
+  ) {
+    // Handle request interceptors
+    if (!response && !error) {
+      for (const requestInterceptor of this.interceptors?.onRequest || []) {
+        const result = await requestInterceptor({ path: url.pathname, config });
+        if (isRouteHandlerResponse(result)) {
+          return { result };
+        } else if (result !== undefined) {
+          config = result;
         }
       }
-    };
+      return { config };
+    }
 
-    return makeRequest();
+    // Handle response interceptors
+    if (response && !error) {
+      for (const interceptor of this.interceptors?.onResponse || []) {
+        const result = await interceptor({
+          path: url.pathname,
+          config,
+          response,
+          retry: () => this.makeRequest(url, config),
+        });
+        if (isRouteHandlerResponse(result)) {
+          return { result };
+        }
+      }
+    }
+
+    // Handle error interceptors
+    if (error) {
+      for (const errorInterceptor of this.interceptors?.onError || []) {
+        const result = await errorInterceptor({
+          path: url.pathname,
+          config,
+          error,
+          retry: () => this.makeRequest(url, config),
+        });
+        if (isRouteHandlerResponse(result)) {
+          return { result };
+        }
+      }
+    }
+
+    return {};
+  }
+
+  private async makeRequest(url: URL, config: RequestInit): Promise<any> {
+    try {
+      const response = await fetch(url.toString(), config);
+
+      const interceptorResult = await this.executeInterceptors(
+        url,
+        config,
+        response
+      );
+      if (interceptorResult.result) {
+        return interceptorResult.result;
+      }
+
+      const data = deserialize(await response.json());
+      const status = getStatus(response.status as HttpStatusCode).key;
+
+      console[status === "OK" ? "log" : "error"](
+        `Request to ${url.toString()} returned status ${status}`,
+        data
+      );
+
+      return {
+        status: status,
+        data: data as any,
+        response: response,
+      };
+    } catch (error) {
+      console.error(`Error making request to ${url.toString()}`, error);
+      const interceptorResult = await this.executeInterceptors(
+        url,
+        config,
+        undefined,
+        error
+      );
+      if (interceptorResult.result) {
+        return interceptorResult.result;
+      }
+      throw error;
+    }
+  }
+
+  private async executeRequest(path: string, method: HttpMethod, input: any) {
+    const url = this.buildUrl(path, input);
+    let config = await this.buildRequestConfig(method, input);
+
+    // Execute request interceptors
+    const interceptorResult = await this.executeInterceptors(url, config);
+
+    if (interceptorResult.result) {
+      return interceptorResult.result;
+    }
+
+    if (interceptorResult.config) {
+      config = interceptorResult.config;
+    }
+
+    return this.makeRequest(url, config);
   }
 }
 

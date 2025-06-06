@@ -13,15 +13,12 @@ import {
   Exact,
   RouteHandlerErrorDataResponse,
 } from "./types";
-``;
 import {
   HttpMethod,
-  HttpStatusKey,
   HttpErrorStatusKey,
   HttpErrorStatusCode,
   getStatus,
 } from "./http";
-import { error } from "console";
 
 const createTypiRouter = <TRoutes extends RouteMap>(
   routes: TRoutes
@@ -88,12 +85,199 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
     });
   }
 
-  private sendResponse(
-    res: Response,
-    status: HttpStatusKey,
-    data: Record<string, any> = {}
+  private sendResponse(res: Response, result: RouteHandlerResponse) {
+    return res
+      .status(getStatus(result.status).code)
+      .send(serialize(result.data));
+  }
+
+  private makeZodSchemaFromPath(path: string) {
+    const pathParts = path.split("/").filter((part) => part !== "");
+    const pathSchema: Record<string, z.ZodTypeAny> = {};
+    pathParts.forEach((part) => {
+      if (part.startsWith(":")) {
+        const paramName = part.slice(1);
+        pathSchema[paramName] = z.string();
+      }
+    });
+    return z.object(pathSchema);
+  }
+
+  private createBaseContext(req: Request, res: Response): RouteHandlerContext {
+    return {
+      input: {} as any,
+      data: {} as any,
+      request: req,
+      response: res,
+      success: (<TData extends Record<string, any>>(
+        data?: TData
+      ): RouteHandlerResponse<"OK", TData extends undefined ? {} : TData> => {
+        const successData = {
+          status: "OK",
+          data: (data ?? {}) as TData extends undefined ? {} : TData,
+        };
+        // console.log(successData);
+        return successData as any;
+      }) as {
+        (): RouteHandlerResponse<"OK", {}>;
+        <TData extends Record<string, any>>(
+          data: TData
+        ): RouteHandlerResponse<"OK", TData>;
+      },
+      error: <TErrorKey extends HttpErrorStatusKey>(
+        key: TErrorKey,
+        message?: string
+      ): RouteHandlerResponse<TErrorKey, RouteHandlerErrorDataResponse> => {
+        const errorData = {
+          status: key,
+          data: {
+            error: {
+              key: key,
+              code: getStatus(key).code as HttpErrorStatusCode,
+              label: getStatus(key).label,
+              message: message ?? "An unexpected error occurred.",
+            },
+          },
+        };
+        console.error(errorData);
+        return errorData;
+      },
+    };
+  }
+
+  private parseInputs<TInput extends RouteHandlerInput>(
+    req: Request,
+    ctx: RouteHandlerContext,
+    path: string,
+    input: Exact<TInput, RouteHandlerInput>
   ) {
-    return res.status(getStatus(status).code).send(serialize(data));
+    const parsedInput: Record<string, any> = {};
+    const inputsToParse: {
+      key: keyof RouteHandlerInput | "path";
+      source: any;
+      schema: z.ZodTypeAny | undefined;
+    }[] = [
+      { key: "headers", source: req.headers, schema: input?.headers },
+      { key: "body", source: req.body, schema: input?.body },
+      {
+        key: "path",
+        source: req.params,
+        schema: this.makeZodSchemaFromPath(path),
+      },
+      { key: "query", source: req.query, schema: input?.query },
+      { key: "cookies", source: req.cookies, schema: input?.cookies },
+    ];
+
+    for (const { key, source, schema } of inputsToParse) {
+      if (schema) {
+        const result = schema.safeParse(source);
+        if (!result.success) {
+          return {
+            error: ctx.error(
+              "BAD_REQUEST",
+              result.error instanceof ZodError
+                ? result.error.message
+                : `Invalid ${key}`
+            ),
+          };
+        }
+        parsedInput[key] = result.data;
+      }
+    }
+
+    return { parsedInput };
+  }
+
+  private async executeMiddlewares<
+    TMiddlewaresHandlers extends MiddlewareHandlers,
+  >(baseCtx: RouteHandlerContext, middlewares?: TMiddlewaresHandlers) {
+    let middlewareData: Record<string, any> = {};
+
+    for (const middleware of middlewares ?? []) {
+      const middlewareCtx: RouteHandlerContext = {
+        ...baseCtx,
+        data: { ...middlewareData } as any,
+      };
+      try {
+        const result = await middleware(middlewareCtx);
+
+        if (result.status !== "OK") {
+          return {
+            error: middlewareCtx.error(
+              result.status as HttpErrorStatusKey,
+              result.data.error.message || "An unexpected error occurred"
+            ),
+          };
+        } else {
+          if (result.data !== null) {
+            middlewareData = { ...middlewareData, ...result.data };
+          }
+        }
+      } catch (error: unknown) {
+        return {
+          error: baseCtx.error(
+            "INTERNAL_SERVER_ERROR",
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred"
+          ),
+        };
+      }
+    }
+
+    return { middlewareData };
+  }
+
+  private async routeHandler(
+    req: Request,
+    res: Response,
+    path: string,
+    input: RouteHandlerInput,
+    handler: RouteHandler<any, any, any, any>,
+    middlewares?: MiddlewareHandlers
+  ) {
+    // Create base context
+    const baseCtx = this.createBaseContext(req, res);
+
+    // Parse inputs
+    const inputResult = this.parseInputs(req, baseCtx, path, input);
+    if (inputResult.error) return this.sendResponse(res, inputResult.error);
+
+    // Update context with parsed input
+    const ctxWithParsedInput = {
+      ...baseCtx,
+      input: inputResult.parsedInput,
+    };
+
+    // Execute middlewares
+    const middlewareResult = await this.executeMiddlewares(
+      ctxWithParsedInput,
+      middlewares
+    );
+    if (middlewareResult.error)
+      return this.sendResponse(res, middlewareResult.error);
+
+    // Create final context and execute handler
+    const finalCtx = {
+      ...ctxWithParsedInput,
+      data: { ...middlewareResult.middlewareData } as any,
+    };
+
+    // Execute the handler with the final context
+    try {
+      const result = await handler(finalCtx as any);
+      return this.sendResponse(res, result);
+    } catch (error: unknown) {
+      return this.sendResponse(
+        res,
+        finalCtx.error(
+          "INTERNAL_SERVER_ERROR",
+          error instanceof Error
+            ? error.message
+            : "An unexpected error occurred"
+        )
+      );
+    }
   }
 
   private registerMethod<
@@ -119,165 +303,9 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
       };
     }
   > {
-    const makeZodSchemaFromPath = (path: string) => {
-      const pathParts = path.split("/").filter((part) => part !== "");
-      const pathSchema: Record<string, z.ZodTypeAny> = {};
-      pathParts.forEach((part) => {
-        if (part.startsWith(":")) {
-          const paramName = part.slice(1);
-          pathSchema[paramName] = z.string();
-        }
-      });
-      return z.object(pathSchema);
-    };
-
-    const handlerWrapper = async (req: Request, res: Response) => {
-      const parsedInput: Record<string, any> = {};
-      const inputsToParse: {
-        key: keyof RouteHandlerInput | "path";
-        source: any;
-        schema: z.ZodTypeAny | undefined;
-      }[] = [
-        {
-          key: "headers",
-          source: req.headers,
-          schema: input?.headers,
-        },
-        { key: "body", source: req.body, schema: input?.body },
-        {
-          key: "path",
-          source: req.params,
-          schema: makeZodSchemaFromPath(path),
-        },
-        { key: "query", source: req.query, schema: input?.query },
-        {
-          key: "cookies",
-          source: req.cookies,
-          schema: input?.cookies,
-        },
-      ];
-
-      for (const { key, source, schema } of inputsToParse) {
-        if (schema) {
-          const result = schema.safeParse(source);
-          if (!result.success) {
-            console.error(result.error);
-            return this.sendResponse(res, "BAD_REQUEST", {
-              error: {
-                key: "BAD_REQUEST" as HttpErrorStatusKey,
-                code: getStatus("BAD_REQUEST").code,
-                label: getStatus("BAD_REQUEST").label,
-                message:
-                  error instanceof ZodError ? error.message : `Invalid ${key}`,
-              },
-            });
-          }
-          parsedInput[key] = result.data;
-        }
-      }
-
-      const baseCtx: RouteHandlerContext = {
-        input: parsedInput as any,
-        data: {} as any,
-        request: req,
-        response: res,
-        success: (<TData extends Record<string, any>>(
-          data?: TData
-        ): RouteHandlerResponse<"OK", TData extends undefined ? {} : TData> => {
-          return {
-            status: "OK",
-            data: (data ?? {}) as TData extends undefined ? {} : TData,
-          };
-        }) as {
-          (): RouteHandlerResponse<"OK", {}>;
-          <TData extends Record<string, any>>(
-            data: TData
-          ): RouteHandlerResponse<"OK", TData>;
-        },
-        error: <TErrorKey extends HttpErrorStatusKey>(
-          key: TErrorKey,
-          message?: string
-        ): RouteHandlerResponse<TErrorKey, RouteHandlerErrorDataResponse> => {
-          return {
-            status: key,
-            data: {
-              error: {
-                key: key,
-                code: getStatus(key).code as HttpErrorStatusCode,
-                label: getStatus(key).label,
-                message: message ?? "An unexpected error occurred.",
-              },
-            },
-          };
-        },
-      };
-
-      let middlewareData = {};
-
-      for (const middleware of middlewares ?? []) {
-        const middlewareCtx: RouteHandlerContext = {
-          ...baseCtx,
-          data: { ...middlewareData } as any,
-        };
-        try {
-          const result = await middleware(middlewareCtx);
-
-          if (result.status !== "OK") {
-            return this.sendResponse(res, result.status, {
-              error: {
-                key: result.status as HttpErrorStatusKey,
-                code: result.data.error.code,
-                label: result.data.error.label,
-                message:
-                  result.data.error.message || "An unexpected error occurred",
-              },
-            });
-          } else {
-            if (result.data !== null) {
-              middlewareData = { ...middlewareData, ...result.data };
-            }
-          }
-        } catch (error: unknown) {
-          console.error(error);
-          return this.sendResponse(res, "INTERNAL_SERVER_ERROR", {
-            error: {
-              key: "INTERNAL_SERVER_ERROR" as HttpErrorStatusKey,
-              code: getStatus("INTERNAL_SERVER_ERROR").code,
-              label: getStatus("INTERNAL_SERVER_ERROR").label,
-              message:
-                error instanceof Error
-                  ? error.message
-                  : "An unexpected error occurred",
-            },
-          });
-        }
-      }
-
-      const finalCtx = {
-        ...baseCtx,
-        data: { ...middlewareData } as any,
-      };
-
-      try {
-        const result = await handler(finalCtx as any);
-        return this.sendResponse(res, result.status, result.data);
-      } catch (error: unknown) {
-        console.error(error);
-
-        return this.sendResponse(res, "INTERNAL_SERVER_ERROR", {
-          error: {
-            key: "INTERNAL_SERVER_ERROR" as HttpErrorStatusKey,
-            code: getStatus("INTERNAL_SERVER_ERROR").code,
-            label: getStatus("INTERNAL_SERVER_ERROR").label,
-            message:
-              error instanceof Error
-                ? error.message
-                : "An unexpected error occurred",
-          },
-        });
-      }
-    };
-    this.router[method as HttpMethod](path, handlerWrapper);
+    this.router[method as HttpMethod](path, (req: Request, res: Response) =>
+      this.routeHandler(req, res, path, input, handler, middlewares)
+    );
     return this as any;
   }
 
@@ -337,7 +365,6 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
       );
     };
   }
-
   get = this.createHttpMethod("get");
   post = this.createHttpMethod("post");
   put = this.createHttpMethod("put");

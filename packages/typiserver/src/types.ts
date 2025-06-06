@@ -1,7 +1,6 @@
 import { type Request, type Response } from "express";
 import z from "zod";
 import { type TypiRouter } from "./server";
-
 import {
   HttpMethod,
   HttpStatusKey,
