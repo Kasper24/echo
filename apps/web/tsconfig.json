@@ -9,7 +9,7 @@
       }
     ],
     "paths": {
-      "@repo/frontend/*": ["./src/*"]
+      "@repo/web/*": ["./src/*"]
     }
   },
   "include": ["src", "next.config.ts", "next-env.d.ts", ".next/types/**/*.ts"]
