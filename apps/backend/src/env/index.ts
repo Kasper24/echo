@@ -1,4 +1,4 @@
-import { z, ZodError } from "zod";
+import { z } from "zod";
 
 const timeSpanType = z
   .string()
@@ -9,7 +9,7 @@ const envSchema = z.object({
   // Node Environment
   NODE_ENV: z.enum(["development", "test", "production"]),
 
-  RESET_DB: z.coerce.boolean(),
+  RESET_DB: z.coerce.string().default("false"),
 
   PORT: z.coerce.number().positive().int().default(5000),
 
