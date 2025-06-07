@@ -1,8 +1,10 @@
-import { pgTable, integer, text } from "drizzle-orm/pg-core";
+import { pgTable, integer, text, pgEnum } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
 import { timeStamps } from "./base";
-import { chatTypeEnum, userRoleEnum } from "./enums";
 import { users } from "./users";
+
+export const chatTypeEnum = pgEnum("chat_type", ["direct", "group"]);
+export const userRoleEnum = pgEnum("user_role", ["admin", "user"]);
 
 export const chats = pgTable("chats", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),

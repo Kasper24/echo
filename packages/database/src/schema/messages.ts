@@ -1,9 +1,8 @@
-import { pgTable, integer, text, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, integer, text, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
 import { timeStamps } from "./base";
 import { chats } from "./chats";
 import { users } from "./users";
-import { messageAttachmentTypeEnum } from "./enums";
 
 export const messages = pgTable("messages", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -22,6 +21,13 @@ export const messages = pgTable("messages", {
   content: text().notNull(),
   ...timeStamps(false),
 });
+
+export const messageAttachmentTypeEnum = pgEnum("attachment_type", [
+  "image",
+  "video",
+  "audio",
+  "file",
+]);
 
 export const messageAttachments = pgTable("message_attachments", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),

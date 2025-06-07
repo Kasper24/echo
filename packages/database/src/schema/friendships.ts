@@ -1,9 +1,14 @@
-import { pgTable, integer, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, integer, primaryKey, pgEnum } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
 
 import { users } from "./users";
-import { friendStatusEnum } from "./enums";
 import { timeStamps } from "./base";
+
+export const friendStatusEnum = pgEnum("friend_status", [
+  "pending",
+  "accepted",
+  "denied",
+]);
 
 export const friends = pgTable(
   "friends",
