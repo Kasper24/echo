@@ -1,6 +1,11 @@
 import { createServer } from "@repo/api/server";
 import envValidate from "@repo/api/env";
-import { dbPush, dbReset, dbSeed, dbWaitForConnection } from "@repo/database";
+import {
+  dbPush,
+  dbReset,
+  dbSeed,
+  dbWaitForConnection,
+} from "@repo/database/scripts";
 
 envValidate();
 await dbWaitForConnection();
