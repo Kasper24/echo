@@ -110,7 +110,7 @@ const generateChats = async (count: number) => {
 
   for (let i = 0; i < count * 0.7; i++) {
     chats.push({
-      type: "direct",
+      type: "direct" as const,
       name: "Direct Chat",
       description: "",
       picture: faker.image.url(),
@@ -119,7 +119,7 @@ const generateChats = async (count: number) => {
 
   for (let i = 0; i < count * 0.3; i++) {
     chats.push({
-      type: "group",
+      type: "group" as const,
       name: faker.word.adjective() + " " + faker.word.noun() + " Group",
       description: faker.lorem.sentence(),
       picture: faker.image.url(),
@@ -145,7 +145,7 @@ const addChatParticipants = async (
         participants.push({
           userId: user.id,
           chatId: chat.id,
-          role: "user",
+          role: "user" as const,
           createdAt: faker.date.recent(),
         });
       }
