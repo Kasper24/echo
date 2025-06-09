@@ -45,7 +45,7 @@ export class TypiClient {
         }
       },
       apply: (_, __, [input]) => {
-        const method = path[path.length - 1] as HttpMethod;
+        const method = path[path.length - 1].toUpperCase() as HttpMethod;
         const urlWithoutMethod = this.path.slice(0, -1).join("/");
         const url = `${this.baseUrl}/${urlWithoutMethod}`;
         return this.executeRequest(url, method, input);
