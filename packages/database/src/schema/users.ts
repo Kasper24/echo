@@ -6,14 +6,15 @@ import {
   timestamp,
   boolean,
 } from "drizzle-orm/pg-core";
+import { createSelectSchema } from "drizzle-zod";
 import { timeStamps } from "./base";
 
 export const users = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   phoneNumber: varchar({ length: 15 }).unique().notNull(),
-  displayName: varchar({ length: 255 }).notNull().default("New User"),
-  profilePicture: text(),
-  about: text().default("Hello, I'm a new user!"),
+  name: varchar({ length: 255 }).notNull().default("New User"),
+  picture: text(),
+  description: text().default("Hello, I'm a new user!"),
   status: boolean().notNull().default(false),
   lastSeen: timestamp().notNull().defaultNow(),
   ...timeStamps(false),
@@ -36,5 +37,8 @@ export const userPrivacySettings = pgTable("user_privacy_settings", {
 
 export type NewUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
+export const userSelectSchema = createSelectSchema(users);
+
 export type NewUserPrivacySettings = typeof userPrivacySettings.$inferInsert;
 export type UserPrivacySettings = typeof userPrivacySettings.$inferSelect;
+export const userPrivacySelectSchema = createSelectSchema(userPrivacySettings);

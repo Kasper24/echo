@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm";
 import { userPrivacySettings, users } from "./users";
 import { chatParticipants, chats } from "./chats";
 import { blockedUsers, friends } from "./friendships";
-import { messageReadReceipts, messages } from "./messages";
+import { messageAttachments, messageReadReceipts, messages } from "./messages";
 
 export const usersRealtions = relations(users, ({ one, many }) => ({
   userPrivacySettings: one(userPrivacySettings),
@@ -19,7 +19,7 @@ export const userPrivacySettingsRelations = relations(
       fields: [userPrivacySettings.userId],
       references: [users.id],
     }),
-  }),
+  })
 );
 
 export const friendsRealtions = relations(friends, ({ one }) => ({
@@ -64,10 +64,10 @@ export const chatParticipantsRelations = relations(
       fields: [chatParticipants.chatId],
       references: [chats.id],
     }),
-  }),
+  })
 );
 
-export const messagesRelations = relations(messages, ({ one }) => ({
+export const messagesRelations = relations(messages, ({ one, many }) => ({
   sender: one(users, {
     fields: [messages.senderId],
     references: [users.id],
@@ -77,6 +77,8 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     fields: [messages.chatId],
     references: [chats.id],
   }),
+  readReceipnts: many(messageReadReceipts),
+  attachments: many(messageAttachments),
 }));
 
 export const messageReadReceiptsRelations = relations(
@@ -94,5 +96,15 @@ export const messageReadReceiptsRelations = relations(
       fields: [messageReadReceipts.userId],
       references: [users.id],
     }),
-  }),
+  })
+);
+
+export const messageAttachmentsRelations = relations(
+  messageAttachments,
+  ({ one }) => ({
+    message: one(messages, {
+      fields: [messageAttachments.messageId],
+      references: [messages.id],
+    }),
+  })
 );

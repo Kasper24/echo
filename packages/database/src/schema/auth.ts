@@ -5,6 +5,7 @@ import {
   text,
   timestamp,
 } from "drizzle-orm/pg-core";
+import { createSelectSchema } from "drizzle-zod";
 import { users } from "./users";
 import { timeStamps } from "./base";
 
@@ -28,6 +29,8 @@ export const refreshTokens = pgTable("refresh_tokens", {
 
 export type NewOtp = typeof otps.$inferInsert;
 export type Otp = typeof otps.$inferSelect;
+export const otpSelectSchema = createSelectSchema(otps);
 
 export type NewRefreshToken = typeof refreshTokens.$inferInsert;
 export type RefreshToken = typeof refreshTokens.$inferSelect;
+export const refreshTokenSelectSchema = createSelectSchema(refreshTokens);

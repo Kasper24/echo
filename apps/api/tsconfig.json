@@ -1,0 +1,15 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "lib": ["ES2015"],
+    "outDir": "./dist",
+    "target": "es2017",
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "paths": {
+      "@repo/api/*": ["./src/*"]
+    }
+  },
+  "exclude": ["node_modules"],
+  "include": ["./src"]
+}

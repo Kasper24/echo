@@ -1,7 +1,14 @@
-import { pgTable, integer, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, integer, primaryKey, pgEnum } from "drizzle-orm/pg-core";
+import { createSelectSchema } from "drizzle-zod";
+
 import { users } from "./users";
-import { friendStatusEnum } from "./enums";
 import { timeStamps } from "./base";
+
+export const friendStatusEnum = pgEnum("friend_status", [
+  "pending",
+  "accepted",
+  "denied",
+]);
 
 export const friends = pgTable(
   "friends",
@@ -21,7 +28,7 @@ export const friends = pgTable(
     status: friendStatusEnum().notNull().default("pending"),
     ...timeStamps(false),
   },
-  (table) => [primaryKey({ columns: [table.userA, table.userB] })],
+  (table) => [primaryKey({ columns: [table.userA, table.userB] })]
 );
 
 export const blockedUsers = pgTable("blocked_users", {
@@ -43,5 +50,8 @@ export const blockedUsers = pgTable("blocked_users", {
 
 export type NewFriend = typeof friends.$inferInsert;
 export type Friend = typeof friends.$inferSelect;
+export const friendSelectSchema = createSelectSchema(friends);
+
 export type NewBlockedUser = typeof blockedUsers.$inferInsert;
 export type BlockedUser = typeof blockedUsers.$inferSelect;
+export const blockedUserSelectSchema = createSelectSchema(blockedUsers);
