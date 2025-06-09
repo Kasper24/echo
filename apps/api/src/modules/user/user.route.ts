@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
-import { createUpdateSchema } from "drizzle-zod";
 import {
   createTypiRoute,
   createTypiRouteHandler,
@@ -28,7 +27,9 @@ const userRouter = createTypiRouter({
     patch: createTypiRouteHandler({
       input: {
         body: z.object({
-          updatedUser: createUpdateSchema(users),
+          name: z.string().optional(),
+          description: z.string().optional(),
+          picture: z.string().optional(),
         }),
       },
       middlewares: [authMiddleware],
@@ -37,7 +38,7 @@ const userRouter = createTypiRouter({
           .update(users)
           .set({
             updatedAt: new Date(),
-            ...ctx.input.body.updatedUser,
+            ...ctx.input.body,
           })
           .where(eq(users.id, ctx.data.userId))
           .returning();
