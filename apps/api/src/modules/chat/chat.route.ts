@@ -217,7 +217,9 @@ const chatRouter = createTypiRouter({
 
         const enrichedDirectChat = await enrichDirectChat(chat, userId);
 
-        return ctx.success(enrichedDirectChat);
+        return ctx.success({
+          chat: enrichedDirectChat,
+        });
       },
     }),
   }),
@@ -289,7 +291,7 @@ const chatRouter = createTypiRouter({
         });
 
         return ctx.success({
-          data: processedMessages,
+          messages: processedMessages,
           pagination: {
             page,
             limit,

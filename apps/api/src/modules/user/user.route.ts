@@ -21,7 +21,7 @@ const userRouter = createTypiRouter({
         if (!me) return ctx.error("NOT_FOUND", "User not found.");
 
         return ctx.success({
-          ...me,
+          user: me,
         });
       },
     }),
@@ -45,7 +45,7 @@ const userRouter = createTypiRouter({
         if (!user.length) return ctx.error("NOT_FOUND", "User not found.");
 
         return ctx.success({
-          ...user[0],
+          user: user[0],
         });
       },
     }),

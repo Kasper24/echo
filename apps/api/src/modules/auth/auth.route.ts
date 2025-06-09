@@ -155,7 +155,9 @@ const authRouter = createTypiRouter({
           }
         );
 
-        return ctx.success();
+        return ctx.success({
+          message: "OTP verified successfully.",
+        });
       },
     }),
   }),
@@ -172,7 +174,9 @@ const authRouter = createTypiRouter({
         );
         if (error) return ctx.error("UNAUTHORIZED", error.message);
 
-        return ctx.success();
+        return ctx.success({
+          message: "Access token is valid.",
+        });
       },
     }),
   }),
@@ -220,7 +224,9 @@ const authRouter = createTypiRouter({
           }
         );
 
-        return ctx.success();
+        return ctx.success({
+          message: "Access token refreshed successfully.",
+        });
       },
     }),
   }),
