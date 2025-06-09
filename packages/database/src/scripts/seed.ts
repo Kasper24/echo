@@ -27,7 +27,7 @@ const dbSeed = async () => {
 
   await generateAttachments(insertedMessages);
   await generateReadReceipts(insertedMessages);
-  await generateCallHistory(insertedUsers, NUM_CALLS);
+  await generateCallHistory(insertedUsers, insertedChats, NUM_CALLS);
 };
 
 const generateUsers = async (count: number) => {
@@ -279,26 +279,37 @@ const generateReadReceipts = async (messages: schema.Message[]) => {
   console.log(`Created ${receipts.length} read receipts`);
 };
 
-const generateCallHistory = async (users: schema.User[], numCalls: number) => {
+const generateCallHistory = async (
+  users: schema.User[],
+  chats: schema.Chat[],
+  numCalls: number
+) => {
   console.log("Generating call history...");
 
   const calls: (typeof schema.calls.$inferInsert)[] = [];
   const callParticipants: (typeof schema.callParticipants.$inferInsert)[] = [];
 
   for (let i = 0; i < numCalls; i++) {
+    const chat = faker.helpers.arrayElement(chats);
     const createdBy = faker.helpers.arrayElement(users);
-    const duration = faker.number.int({ min: 30, max: 3600 }); // seconds
-    const startedAt = Math.floor(
-      faker.date.recent({ days: 30 }).getTime() / 1000
-    );
-    const endedAt = startedAt + duration;
+    const now = new Date();
+    const ended = faker.datatype.boolean({ probability: 0.9 });
+    const startedAt = faker.date.between({
+      from: new Date(now.getTime() - 3_600_000),
+      to: now,
+    });
+    const endedAt = ended
+      ? faker.date.between({
+          from: startedAt,
+          to: new Date(now.getTime() + 3_600_000),
+        })
+      : null;
 
     calls.push({
       startedAt,
       endedAt,
+      chatId: chat.id,
       createdBy: createdBy.id,
-      createdAt: new Date(startedAt * 1000),
-      updatedAt: new Date(startedAt * 1000),
     });
   }
 
@@ -312,11 +323,22 @@ const generateCallHistory = async (users: schema.User[], numCalls: number) => {
       const user = participants[i];
       const isInitiator = user.id === call.createdBy;
       const joined = faker.datatype.boolean({ probability: 0.8 }); // 80% chance joined
-      const joinOffset = faker.number.int({ min: 0, max: 30 });
-      const leaveOffset = faker.number.int({ min: 10, max: 3600 });
-
-      const joinedAt = joined ? call.startedAt + joinOffset : null;
-      const leftAt = joined ? joinedAt! + leaveOffset : null;
+      const left = joined
+        ? faker.datatype.boolean({ probability: 0.9 })
+        : false;
+      const joinedAt = joined
+        ? faker.date.between({
+            from: call.startedAt,
+            to: new Date(call.startedAt.getTime() + 3_600_000),
+          })
+        : null;
+      const leftAt =
+        joined && left
+          ? faker.date.between({
+              from: joinedAt!,
+              to: new Date(joinedAt!.getTime() + 3_600_000),
+            })
+          : null;
 
       callParticipants.push({
         callId: call.id,
@@ -324,14 +346,11 @@ const generateCallHistory = async (users: schema.User[], numCalls: number) => {
         status: joined
           ? "answered"
           : faker.helpers.arrayElement(["ringing", "declined", "missed"]),
-        joinedAt,
+        joinedAt: joinedAt,
         leftAt,
-        isInitator: isInitiator,
         isMuted: faker.datatype.boolean(),
         isVideoEnabled: faker.datatype.boolean(),
         isScreenSharing: faker.datatype.boolean({ probability: 0.1 }), // 10% screen sharing
-        createdAt: new Date(call.startedAt * 1000),
-        updatedAt: new Date(call.startedAt * 1000),
       });
     }
   }

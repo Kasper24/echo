@@ -1,7 +1,14 @@
-import { pgTable, integer, pgEnum, boolean } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  integer,
+  pgEnum,
+  boolean,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
 import { timeStamps } from "./base";
 import { users } from "./users";
+import { chats } from "./chats";
 
 export const callStatusEnum = pgEnum("call_status", [
   "ringing",
@@ -12,8 +19,11 @@ export const callStatusEnum = pgEnum("call_status", [
 
 export const calls = pgTable("calls", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  startedAt: integer().notNull(),
-  endedAt: integer(),
+  chatId: integer()
+    .references(() => chats.id)
+    .notNull(),
+  startedAt: timestamp().defaultNow().notNull(),
+  endedAt: timestamp(),
   createdBy: integer()
     .references(() => users.id)
     .notNull(),
@@ -29,9 +39,8 @@ export const callParticipants = pgTable("call_participants", {
     .references(() => users.id)
     .notNull(),
   status: callStatusEnum().notNull().default("ringing"),
-  joinedAt: integer(),
-  leftAt: integer(),
-  isInitator: boolean(),
+  joinedAt: timestamp(),
+  leftAt: timestamp(),
   isMuted: boolean().notNull().default(false),
   isVideoEnabled: boolean().notNull().default(false),
   isScreenSharing: boolean().notNull().default(false),
