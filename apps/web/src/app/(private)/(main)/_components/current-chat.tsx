@@ -30,6 +30,9 @@ import {
   Crown,
   ImageIcon,
   Users,
+  ArrowLeft,
+  Search,
+  Calendar,
 } from "lucide-react";
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
@@ -67,45 +70,27 @@ import {
   TabsList,
   TabsTrigger,
 } from "@repo/ui/components/tabs";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@repo/ui/components/drawer";
 import api, { type ApiOutputs } from "@repo/web/api";
-import { useCurrentChat } from "@repo/web/app/(private)/_providers/current-chat-provider";
+import { useCurrentChat } from "@repo/web/app/(private)/(main)/_providers/current-chat-provider";
 import { useInView } from "react-intersection-observer";
+import useMediaQuery from "@repo/web/hooks/use-media-query";
+import { useUserId } from "../_hooks/user-provider";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetClose,
+} from "@repo/ui/components/sheet";
+import {
+  SearchDrawerProvider,
+  useSearchDrawer,
+} from "../_providers/search-drawer-provider copy";
 
 type ChatMessage =
-  ApiOutputs["/chat"]["/:chatId/messages"]["get"]["data"][number];
+  ApiOutputs["/chat"]["/:chatId/messages"]["get"]["messages"][number];
 type ChatMessageAttachment =
-  ApiOutputs["/chat"]["/:chatId/messages"]["get"]["data"][number]["attachments"][number];
-
-const CurrentChat = () => {
-  const { status, fetchStatus, error, isLoading } = useCurrentChatDetails();
-
-  if (status === "pending" && fetchStatus === "idle")
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        Maybe select a chat first?
-      </div>
-    );
-
-  if (isLoading) return <div>Loading...</div>;
-
-  return (
-    <div className="flex h-full w-full flex-col">
-      <ChatHeader />
-      <MessagesList />
-      <SendMessageContainer />
-    </div>
-  );
-};
+  ApiOutputs["/chat"]["/:chatId/messages"]["get"]["messages"][number]["attachments"][number];
 
 const useCurrentChatDetails = () => {
   const { chatId } = useCurrentChat();
@@ -113,14 +98,18 @@ const useCurrentChatDetails = () => {
     queryKey: ["chatDetails", chatId],
     enabled: chatId !== null,
     queryFn: async () => {
-      const { status, data } = await api.chat[":chatId"].get({
-        path: {
-          chatId: chatId!.toString(),
+      const { data } = await api.chat[":chatId"].get({
+        input: {
+          path: {
+            chatId: chatId!.toString(),
+          },
+        },
+        options: {
+          throwOnErrorStatus: true,
         },
       });
 
-      if (status === "OK") return data;
-      throw new Error(data.error.message);
+      return data;
     },
   });
 };
@@ -132,65 +121,123 @@ const useToggleBlockUser = () => {
 
   return useMutation({
     mutationFn: async () => {
-      if (!data || !data.otherUser) return;
-      await api.block[":userId"][data.otherUser.isBlocked ? "delete" : "post"]({
-        path: {
-          userId: data.otherUser.id.toString(),
+      if (!data || !data.chat.otherUser) return;
+      await api.block[":userId"][
+        data.chat.otherUser.isBlocked ? "delete" : "post"
+      ]({
+        input: {
+          path: {
+            userId: data.chat.otherUser.id.toString(),
+          },
+        },
+        options: {
+          throwOnErrorStatus: true,
         },
       });
     },
-    // When mutate is called:
     onMutate: async () => {
-      // Cancel any outgoing refetches
-      // (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: ["chatDetails", chatId] });
-
-      // Snapshot the previous value
-      const previousIsBlocked = data?.otherUser?.isBlocked;
-
-      // Optimistically update to the new value
+      const previousIsBlocked = data?.chat?.otherUser?.isBlocked;
       queryClient.setQueryData(["chatDetails", chatId], () => ({
         ...data,
-        otherUser: {
-          ...data!.otherUser,
-          isBlocked: !data!.otherUser!.isBlocked,
+        chat: {
+          ...data!.chat,
+          otherUser: {
+            ...data!.chat.otherUser,
+            isBlocked: !data!.chat.otherUser!.isBlocked,
+          },
         },
       }));
-
-      // Return a context object with the snapshotted value
       return { previousIsBlocked };
     },
-    // If the mutation fails,
-    // use the context returned from onMutate to roll back
-    onError: (err, newIsBlocked, context) => {
+    onSuccess: (_, __, context) => {
+      toast.success(
+        `Successfully ${context?.previousIsBlocked ? "unblocked" : "blocked"} user.`
+      );
+    },
+    onError: (_, __, context) => {
       queryClient.setQueryData(
         ["chatDetails", chatId],
         context?.previousIsBlocked
       );
+      toast.error(
+        `Failed to ${context?.previousIsBlocked ? "unblock" : "block"} user.`
+      );
     },
-    // Always refetch after error or success:
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["chatDetails", chatId] });
     },
   });
 };
 
-const useUser = () => {
-  const { data } = useQuery({
-    queryKey: ["user"],
-    queryFn: async () => {
-      const { status, data } = await api.user[""].get();
-      if (status === "OK") return data;
-      throw new Error(data.error.message);
-    },
-  });
+const useMessageScroll = () => {
+  const { chatId } = useCurrentChat();
+  const queryClient = useQueryClient();
 
-  return {
-    userId: data?.id ?? null,
+  const scrollToMessage = async (messageId: number) => {
+    const messageElement = document.getElementById(`message-${messageId}`);
+
+    if (messageElement) {
+      messageElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+      messageElement.classList.add("highlight-message");
+      setTimeout(() => {
+        messageElement.classList.remove("highlight-message");
+      }, 3000);
+    } else {
+      // Message not in DOM - need to load more messages
+      // This could be enhanced to fetch specific pages or use a different API endpoint
+      // that loads messages around a specific message ID
+
+      try {
+        // Invalidate and refetch messages to ensure we have the latest data
+        await queryClient.invalidateQueries({
+          queryKey: ["chatMessages", chatId],
+        });
+
+        // Wait a bit for the query to complete and DOM to update
+        setTimeout(() => {
+          const retryElement = document.getElementById(`message-${messageId}`);
+          if (retryElement) {
+            retryElement.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+            retryElement.classList.add("highlight-message");
+            setTimeout(() => {
+              retryElement.classList.remove("highlight-message");
+            }, 3000);
+          }
+        }, 1000);
+      } catch (error) {
+        console.error("Failed to load message:", error);
+        toast.error("Could not navigate to message");
+      }
+    }
   };
+
+  return { scrollToMessage };
 };
 
-const ChatHeader = () => {
+const CurrentChat = () => {
+  return (
+    <div className="flex flex-col flex-1">
+      <SearchDrawerProvider>
+        <Header />
+        <SearchMessagesDrawer />
+      </SearchDrawerProvider>
+      <MessagesList />
+      <SendMessageContainer />
+    </div>
+  );
+};
+
+const Header = () => {
+  const { isMobile } = useMediaQuery();
+  const { setChatId } = useCurrentChat();
   const { data, isPending, isError } = useCurrentChatDetails();
 
   if (isPending) return null;
@@ -199,21 +246,29 @@ const ChatHeader = () => {
   if (!data) return null;
 
   return (
-    <div className="flex items-center justify-between border-b p-4">
+    <div className="flex items-center justify-between border-b p-4 h-16">
       <div className="flex items-center space-x-4">
+        {isMobile && (
+          <Button variant="ghost" size="icon" onClick={() => setChatId(null)}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        )}
         <Avatar>
-          <AvatarImage src={data.picture ?? undefined} />
-          <AvatarFallback>{data.name.slice(0, 1)}</AvatarFallback>
+          <AvatarImage src={data.chat.picture ?? undefined} />
+          <AvatarFallback>{data.chat.name.slice(0, 1)}</AvatarFallback>
         </Avatar>
         <div>
-          <h2 className="text-sm font-medium">{data.name}</h2>
-          {data?.type === "direct" && (
+          <h2 className="text-sm font-medium">{data.chat.name}</h2>
+          {data?.chat.type === "direct" && (
             <p className="text-xs text-muted-foreground">
-              {data.otherUser.status
+              {data.chat.otherUser.status
                 ? "Online"
-                : `Last seen ${formatDistanceToNow(data.otherUser.lastSeen, {
-                    addSuffix: true,
-                  })}`}
+                : `Last seen ${formatDistanceToNow(
+                    data.chat.otherUser.lastSeen,
+                    {
+                      addSuffix: true,
+                    }
+                  )}`}
             </p>
           )}
         </div>
@@ -236,7 +291,7 @@ const ProfileDialog = () => {
   const { data } = useCurrentChatDetails();
   const toggleBlockUser = useToggleBlockUser();
 
-  if (!data || data.type !== "direct") return null;
+  if (!data || data.chat.type !== "direct") return null;
 
   return (
     <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden max-h-[90vh] rounded-lg">
@@ -253,10 +308,10 @@ const ProfileDialog = () => {
                 <X className="h-4 w-4" />
               </Button>
               <div className="relative h-full w-full">
-                {data.picture && (
+                {data.chat.picture && (
                   <Image
-                    src={data.picture}
-                    alt={data.name}
+                    src={data.chat.picture}
+                    alt={data.chat.name}
                     fill
                     className="object-contain"
                   />
@@ -265,10 +320,10 @@ const ProfileDialog = () => {
             </div>
           ) : (
             <>
-              {data.picture && (
+              {data.chat.picture && (
                 <Image
-                  src={data.picture}
-                  alt={data.name}
+                  src={data.chat.picture}
+                  alt={data.chat.name}
                   fill
                   className="object-cover cursor-pointer"
                   onClick={() => setIsFullScreenImage(true)}
@@ -285,12 +340,14 @@ const ProfileDialog = () => {
           )}
         </div>
         <DialogHeader className="pt-6 pb-2 px-6">
-          <DialogTitle className="text-2xl font-bold">{data.name}</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            {data.chat.name}
+          </DialogTitle>
           <div className="text-sm text-muted-foreground">
-            {data.otherUser?.status ? (
+            {data.chat.otherUser?.status ? (
               <span className="text-green-500">Online</span>
-            ) : data.otherUser.lastSeen ? (
-              `Last seen ${formatDistanceToNow(data.otherUser.lastSeen, { addSuffix: true })}`
+            ) : data.chat.otherUser.lastSeen ? (
+              `Last seen ${formatDistanceToNow(data.chat.otherUser.lastSeen, { addSuffix: true })}`
             ) : (
               "Offline"
             )}
@@ -341,24 +398,26 @@ const ProfileDialog = () => {
               <h3 className="text-sm font-medium text-muted-foreground">
                 Phone
               </h3>
-              <p>{data.otherUser.phoneNumber || "Not available"}</p>
+              <p>{data.chat.otherUser.phoneNumber || "Not available"}</p>
             </div>
 
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-muted-foreground">
                 Status
               </h3>
-              <p>{data.otherUser.status || "No status"}</p>
+              <p>{data.chat.otherUser.status || "No status"}</p>
             </div>
 
             <div className="pt-4">
               <Button
-                variant={data.otherUser.isBlocked ? "default" : "destructive"}
+                variant={
+                  data.chat.otherUser.isBlocked ? "default" : "destructive"
+                }
                 className="w-full"
                 onClick={() => toggleBlockUser.mutate()}
               >
-                {data.otherUser.isBlocked ? "Unblock" : "Block"}{" "}
-                {data.otherUser.name}
+                {data.chat.otherUser.isBlocked ? "Unblock" : "Block"}{" "}
+                {data.chat.otherUser.name}
               </Button>
             </div>
           </TabsContent>
@@ -406,10 +465,10 @@ const GroupDialog = () => {
                 <X className="h-4 w-4" />
               </Button>
               <div className="relative h-full w-full">
-                {data.picture && (
+                {data.chat.picture && (
                   <Image
-                    src={data.picture}
-                    alt={data.name}
+                    src={data.chat.picture}
+                    alt={data.chat.name}
                     fill
                     className="object-contain"
                   />
@@ -418,10 +477,10 @@ const GroupDialog = () => {
             </div>
           ) : (
             <>
-              {data.picture && (
+              {data.chat.picture && (
                 <Image
-                  src={data.picture}
-                  alt={data.name}
+                  src={data.chat.picture}
+                  alt={data.chat.name}
                   fill
                   className="object-cover cursor-pointer"
                   onClick={() => setIsFullScreenImage(true)}
@@ -447,9 +506,11 @@ const GroupDialog = () => {
           )}
         </div>
         <DialogHeader className="pt-6 pb-2 px-6">
-          <DialogTitle className="text-2xl font-bold">{data.name}</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">
+            {data.chat.name}
+          </DialogTitle>
           <div className="text-sm text-muted-foreground">
-            {data.chatParticipants.length} participants
+            {data.chat.chatParticipants.length} participants
           </div>
         </DialogHeader>
       </div>
@@ -498,14 +559,14 @@ const GroupDialog = () => {
               <h3 className="text-sm font-medium text-muted-foreground">
                 Description
               </h3>
-              <p>{data.description}</p>
+              <p>{data.chat.description}</p>
             </div>
 
             <div className="space-y-2">
               <h3 className="text-sm font-medium text-muted-foreground">
                 Created
               </h3>
-              <p>{format(data.createdAt, "PPP")}</p>
+              <p>{format(data.chat.createdAt, "PPP")}</p>
             </div>
           </TabsContent>
 
@@ -514,7 +575,7 @@ const GroupDialog = () => {
               <div className="flex items-center">
                 <Users className="mr-2 h-4 w-4" />
                 <h3 className="text-sm font-medium">
-                  {data.chatParticipants.length} Participants
+                  {data.chat.chatParticipants.length} Participants
                 </h3>
               </div>
               <Button size="sm" variant="outline" className="h-8">
@@ -524,7 +585,7 @@ const GroupDialog = () => {
             </div>
 
             <div className="space-y-4">
-              {data.chatParticipants.map((member) => (
+              {data.chat.chatParticipants.map((member) => (
                 <div key={member.id} className="flex items-center gap-3">
                   <div className="relative h-12 w-12 rounded-full overflow-hidden">
                     {member.user.picture && (
@@ -574,25 +635,160 @@ const GroupDialog = () => {
 };
 
 const SearchMessagesDrawer = () => {
+  const { chatId } = useCurrentChat();
+  const { isMobile } = useMediaQuery();
+  const { searchOpen, setSearchOpen } = useSearchDrawer();
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const { isPending, data } = useQuery({
+    enabled: Boolean(chatId && searchTerm),
+    queryKey: ["searchMessages", chatId, searchTerm],
+    queryFn: async () => {
+      const { data } = await api.chat[":chatId/messages/search"].get({
+        input: {
+          path: {
+            chatId: chatId!.toString(),
+          },
+          query: {
+            searchTerm: searchTerm,
+          },
+        },
+        options: {
+          throwOnErrorStatus: true,
+        },
+      });
+      return data;
+    },
+  });
+  const { scrollToMessage } = useMessageScroll();
+
+  React.useEffect(() => {
+    if (!searchOpen) {
+      setSearchTerm("");
+    }
+  }, [searchOpen]);
+
+  const handleMessageClick = (messageId: number) => {
+    setSearchOpen(false);
+    scrollToMessage(messageId);
+  };
+
   return (
-    <DrawerContent>
-      <DrawerHeader>
-        <DrawerTitle>Are you absolutely sure?</DrawerTitle>
-        <DrawerDescription>This action cannot be undone.</DrawerDescription>
-      </DrawerHeader>
-      <DrawerFooter>
-        <Button>Submit</Button>
-        <DrawerClose asChild>
-          <Button variant="outline">Cancel</Button>
-        </DrawerClose>
-      </DrawerFooter>
-    </DrawerContent>
+    <Sheet open={searchOpen} onOpenChange={setSearchOpen}>
+      <SheetContent
+        side={isMobile ? "bottom" : "right"}
+        className={cn(
+          "flex flex-col w-full sm:max-w-md p-0 bg-card",
+          isMobile && "h-[85vh] rounded-t-xl"
+        )}
+      >
+        <SheetHeader className="p-4 border-b">
+          <div className="flex items-center gap-2">
+            <SheetClose asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </SheetClose>
+            <SheetTitle className="text-left">Search Messages</SheetTitle>
+          </div>
+          {/* {conversation && (
+            <SheetDescription className="text-left mt-1">
+              Searching in chat with {conversation.name}
+            </SheetDescription>
+          )} */}
+        </SheetHeader>
+
+        <div className="p-4 border-b">
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search messages"
+                className="pl-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              {searchTerm && (
+                <button
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                  onClick={() => setSearchTerm("")}
+                >
+                  <X className="h-4 w-4 text-muted-foreground" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <ScrollArea className="flex-1 p-4 ">
+          {isPending ? (
+            <div className="flex items-center justify-center h-40">
+              <div className="animate-pulse text-muted-foreground">
+                Searching...
+              </div>
+            </div>
+          ) : searchTerm && (data?.messages.length || 0) > 0 ? (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground mb-2">
+                {data?.messages?.length}{" "}
+                {data?.messages?.length === 1 ? "result" : "results"} found
+              </div>
+
+              {data?.messages?.map((message) => (
+                <div
+                  key={message.id}
+                  className="border rounded-lg p-3 hover:bg-muted/50 transition-colors cursor-pointer"
+                  onClick={() => handleMessageClick(message.id)}
+                >
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                    <Calendar className="h-3.5 w-3.5" />
+                    {format(message.createdAt, "MMM d, yyyy • h:mm a")}
+                  </div>
+                  <div className="mt-1">
+                    <p className="text-sm leading-relaxed">
+                      {message.content
+                        .split(new RegExp(`(${searchTerm})`, "gi"))
+                        .map((part, i) =>
+                          part.toLowerCase() === searchTerm.toLowerCase() ? (
+                            <span
+                              key={i}
+                              className="bg-yellow-200 text-black font-medium px-0.5 rounded"
+                            >
+                              {part}
+                            </span>
+                          ) : (
+                            part
+                          )
+                        )}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : searchTerm ? (
+            <div className="flex flex-col items-center justify-center h-40 text-center">
+              <Search className="h-10 w-10 text-muted-foreground/50 mb-2" />
+              <p className="text-muted-foreground">
+                No messages found matching {searchTerm}
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-40 text-center">
+              <Search className="h-10 w-10 text-muted-foreground/50 mb-2" />
+              <p className="text-muted-foreground">
+                Enter a search term to find messages
+              </p>
+            </div>
+          )}
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
   );
 };
 
 const ChatDropdown = () => {
   const { data } = useCurrentChatDetails();
   const toggleBlockUser = useToggleBlockUser();
+  const { setSearchOpen } = useSearchDrawer();
 
   if (!data) return null;
 
@@ -606,33 +802,28 @@ const ChatDropdown = () => {
       <DropdownMenuContent>
         <DropdownMenuLabel>Chat Settings</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <Drawer direction="right">
-          <DrawerTrigger asChild>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              Search Messages
-            </DropdownMenuItem>
-          </DrawerTrigger>
-          <SearchMessagesDrawer />
-        </Drawer>
+        <DropdownMenuItem onSelect={() => setSearchOpen(true)}>
+          Search Messages
+        </DropdownMenuItem>
         <Dialog>
           <DialogTrigger asChild>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              {data.type === "group" ? "View info" : "View profile"}
+              {data.chat.type === "group" ? "View info" : "View profile"}
             </DropdownMenuItem>
           </DialogTrigger>
-          {data.type === "group" ? <GroupDialog /> : <ProfileDialog />}
+          {data.chat.type === "group" ? <GroupDialog /> : <ProfileDialog />}
         </Dialog>
-        {data.type === "direct" && (
+        {data.chat.type === "direct" && (
           <div>
             <DropdownMenuItem>Add Friend</DropdownMenuItem>
             <DropdownMenuItem onClick={() => toggleBlockUser.mutate()}>
-              {data.otherUser.isBlocked ? "Unblock User" : "Block User"}
+              {data.chat.otherUser.isBlocked ? "Unblock User" : "Block User"}
             </DropdownMenuItem>
           </div>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          {data.type === "group" ? "Leave Group" : "Delete Chat"}
+          {data.chat.type === "group" ? "Leave Group" : "Delete Chat"}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -640,19 +831,23 @@ const ChatDropdown = () => {
 };
 
 const MessagesList = () => {
-  const { userId } = useUser();
+  const userId = useUserId();
   const { chatId } = useCurrentChat();
   const { data, fetchNextPage } = useInfiniteQuery({
     queryKey: ["chatMessages", chatId],
     enabled: chatId !== null,
     queryFn: async ({ pageParam }) => {
-      const { status, data } = await api.chat[":chatId/messages"].get({
-        path: { chatId: chatId!.toString() },
-        query: { page: pageParam, limit: 50 },
+      const { data } = await api.chat[":chatId/messages"].get({
+        input: {
+          path: { chatId: chatId!.toString() },
+          query: { page: pageParam, limit: 50 },
+        },
+        options: {
+          throwOnErrorStatus: true,
+        },
       });
 
-      if (status === "OK") return data;
-      throw new Error(data.error.message);
+      return data;
     },
     initialPageParam: 1,
     getNextPageParam: (data) => {
@@ -670,19 +865,19 @@ const MessagesList = () => {
   }, [inView, fetchNextPage]);
 
   const allMessages = React.useMemo(
-    () => data?.pages.flatMap((page) => page.data).reverse(),
+    () => data?.pages.flatMap((page) => page.messages).reverse(),
     [data]
   );
 
   return (
     <ScrollArea
-      className="min-h-0 grow"
+      className="h-[calc(100vh-135px)]"
       scrollTo={(scrollArea) => ({
         top: scrollArea.scrollHeight,
         behavior: "instant",
       })}
     >
-      <div ref={ref} className="h-5 w-1 bg-red-600"></div>
+      <div ref={ref} className="size-1"></div>
       {allMessages?.map((message, index, messages) => {
         const isSentByUser = message.sender.id === userId;
 
@@ -691,7 +886,7 @@ const MessagesList = () => {
         const prevDate = previous ? previous?.createdAt : undefined;
 
         return (
-          <div key={message.id}>
+          <div key={message.id} id={`message-${message.id}`}>
             <DateDivider message={message} prevDate={prevDate} />
             <div
               className={cn(
@@ -702,9 +897,9 @@ const MessagesList = () => {
               )}
             >
               <MessageSender prevSenderId={prevSenderId} message={message} />
-              <p className="text-sm">{message.content}</p>
+              <p>{message.content}</p>
               <MessageAttachments message={message} />
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-end gap-1 mt-1">
                 <span className="text-xs font-light">
                   {format(message.createdAt, "HH:mm")}
                 </span>
@@ -731,8 +926,8 @@ const DateDivider = ({
   if (!showDate) return null;
 
   return (
-    <div className="flex justify-center">
-      <span className="bg-foreground text-background rounded-md p-2 text-xs font-light">
+    <div className="flex justify-center mt-2">
+      <span className="bg-foreground text-background text-xs px-3 py-2 rounded-full">
         {format(message.createdAt, "PPP")}
       </span>
     </div>
@@ -746,13 +941,13 @@ const MessageSender = ({
   prevSenderId: number | undefined;
   message: ChatMessage;
 }) => {
-  const { userId } = useUser();
-  const { data: chatData } = useCurrentChatDetails();
+  const userId = useUserId();
+  const { data } = useCurrentChatDetails();
 
   const isSentByUser = message.sender.id === userId;
   const showSender =
     prevSenderId !== message.sender.id &&
-    chatData?.type === "group" &&
+    data?.chat?.type === "group" &&
     !isSentByUser;
 
   if (!showSender) return null;
@@ -761,7 +956,7 @@ const MessageSender = ({
     <div className="flex items-center gap-x-2">
       <Avatar className="h-6 w-6">
         <AvatarImage src={message.sender.picture ?? undefined} />
-        <AvatarFallback>EL</AvatarFallback>
+        <AvatarFallback>{message.sender.name}</AvatarFallback>
       </Avatar>
       <span className="text-sm font-bold">{message.sender.name}</span>
     </div>
@@ -854,7 +1049,7 @@ const MessageAttachments = ({ message }: { message: ChatMessage }) => {
 };
 
 const MessageReadReceipt = ({ message }: { message: ChatMessage }) => {
-  const { userId } = useUser();
+  const userId = useUserId();
 
   const isSentByUser = message.sender.id === userId;
 

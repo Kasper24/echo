@@ -47,9 +47,11 @@ const VerifyOtmForm = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { status, data } = await api.auth["otp/verify"].post({
-      body: {
-        phoneNumber: phoneNumber ?? "",
-        otp: values.otp,
+      input: {
+        body: {
+          phoneNumber: phoneNumber ?? "",
+          otp: values.otp,
+        },
       },
     });
 

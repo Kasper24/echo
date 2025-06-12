@@ -43,7 +43,9 @@ const SendOtpForm = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { status, data } = await api.auth["otp/send"].post({
-      body: values,
+      input: {
+        body: values,
+      },
     });
 
     if (status !== "OK") {

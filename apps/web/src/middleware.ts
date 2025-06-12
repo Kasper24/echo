@@ -14,7 +14,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
 
   if (isPrivateRoute && !isAuth) {
-    const refreshTokenRequest = await api.auth["refresh-token"].get();
+    const refreshTokenRequest = await api.auth["refresh-token"].post();
 
     if (refreshTokenRequest.status === "OK") {
       const cookies = extractAndParseCookies(
