@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, count, desc, eq, ne, notExists } from "drizzle-orm";
+import { and, count, desc, eq, ilike, ne, notExists } from "drizzle-orm";
 import {
   createTypiRouter,
   createTypiRoute,
@@ -301,6 +301,65 @@ const chatRouter = createTypiRouter({
             hasNext,
             hasPrev,
           },
+        });
+      },
+    }),
+  }),
+  "/:chatId/messages/search": createTypiRoute({
+    get: createTypiRouteHandler("/:chatId/messages/search", {
+      input: {
+        query: z.object({
+          searchTerm: z.string(),
+        }),
+      },
+      middlewares: [authMiddleware],
+      handler: async (ctx) => {
+        const chatId = parseInt(ctx.input.path.chatId);
+        const userId = ctx.data.userId;
+
+        const isParticipant = await db.query.chatParticipants.findFirst({
+          where: and(
+            eq(chatParticipants.userId, userId),
+            eq(chatParticipants.chatId, chatId)
+          ),
+        });
+        if (!isParticipant)
+          return ctx.error(
+            "UNAUTHORIZED",
+            "You are not a participant of this chat"
+          );
+
+        const chat = await db.query.chats.findFirst({
+          where: eq(chats.id, chatId),
+        });
+        if (!chat) return ctx.error("NOT_FOUND", "Chat not found.");
+        const chatMessages = await db.query.messages.findMany({
+          where: and(
+            eq(messages.chatId, chatId),
+            ilike(messages.content, `%${ctx.input.query.searchTerm}%`)
+          ),
+          orderBy: [desc(messages.createdAt)],
+          with: {
+            sender: true,
+            readReceipnts: true,
+            attachments: true,
+          },
+        });
+
+        const blockerIds = await getUserBlockers(userId);
+
+        const processedMessages = chatMessages.map((message) => {
+          if (blockerIds.has(message.senderId)) {
+            return {
+              ...message,
+              sender: unavailableUserData(),
+            };
+          }
+          return message;
+        });
+
+        return ctx.success({
+          messages: processedMessages,
         });
       },
     }),
