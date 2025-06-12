@@ -17,6 +17,7 @@ import {
   jwtVerifyAccessToken,
   jwtVerifyRefreshToken,
 } from "@repo/api/utils/jwt";
+import authMiddleware from "@repo/api/middlewares/auth";
 
 const authRouter = createTypiRouter({
   "/otp/send": createTypiRoute({
@@ -155,6 +156,10 @@ const authRouter = createTypiRouter({
           }
         );
 
+        await db
+          .delete(otps)
+          .where(eq(otps.phoneNumber, ctx.input.body.phoneNumber));
+
         return ctx.success({
           message: "OTP verified successfully.",
         });
@@ -181,7 +186,7 @@ const authRouter = createTypiRouter({
     }),
   }),
   "/refresh-token": createTypiRoute({
-    get: createTypiRouteHandler({
+    post: createTypiRouteHandler({
       input: {
         cookies: z.object({
           refreshToken: z.string().min(1),
@@ -231,21 +236,17 @@ const authRouter = createTypiRouter({
     }),
   }),
   "/logout": createTypiRoute({
-    get: createTypiRouteHandler({
+    post: createTypiRouteHandler({
       input: {
         cookies: z.object({
           refreshToken: z.string().min(1),
         }),
       },
+      middlewares: [authMiddleware],
       handler: async (ctx) => {
-        const [error, data] = await attempt(() =>
-          jwtVerifyRefreshToken(ctx.input.cookies.refreshToken)
-        );
-        if (error) return ctx.error("UNAUTHORIZED", error.message);
-
         await db
           .delete(refreshTokens)
-          .where(eq(refreshTokens.userId, data.userId));
+          .where(eq(refreshTokens.userId, ctx.data.userId));
 
         ctx.response.clearCookie(process.env.JWT_ACCESS_TOKEN_COOKIE_KEY);
         ctx.response.clearCookie(process.env.JWT_REFRESH_TOKEN_COOKIE_KEY);
