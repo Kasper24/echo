@@ -1,5 +1,9 @@
 import { deserialize } from "superjson";
-import type { RouteHandlerResponse, TypiRouter } from "@repo/typiserver";
+import type {
+  RouteHandlerErrorDataResponse,
+  RouteHandlerResponse,
+  TypiRouter,
+} from "@repo/typiserver";
 import {
   type HttpMethod,
   type HttpStatusCode,
@@ -44,11 +48,11 @@ export class TypiClient {
           );
         }
       },
-      apply: (_, __, [input]) => {
+      apply: (_, __, [args]) => {
         const method = path[path.length - 1].toUpperCase() as HttpMethod;
         const urlWithoutMethod = this.path.slice(0, -1).join("/");
         const url = `${this.baseUrl}/${urlWithoutMethod}`;
-        return this.executeRequest(url, method, input);
+        return this.executeRequest(url, method, args?.input, args?.options);
       },
     }) as any;
   }
@@ -79,11 +83,11 @@ export class TypiClient {
       .join("; ");
   }
 
-  private async buildHeaders(input: any) {
+  private async buildHeaders(input: any, hasBody: boolean, hasFiles: boolean) {
     const cookieHeader = this.buildCookieHeader(input?.cookies);
 
     let headers = {
-      "Content-Type": "application/json",
+      ...(hasBody && !hasFiles ? { "Content-Type": "application/json" } : {}),
       ...(input?.headers || {}),
       ...(cookieHeader ? { Cookie: cookieHeader } : {}),
     };
@@ -109,29 +113,86 @@ export class TypiClient {
     return headers;
   }
 
-  private async buildRequestConfig(method: HttpMethod, input: any) {
-    const headers = await this.buildHeaders(input);
+  private hasFileData(obj: any): boolean {
+    if (obj instanceof File || obj instanceof Blob) {
+      return true;
+    }
+    if (obj && typeof obj === "object") {
+      return Object.values(obj).some((value) => this.hasFileData(value));
+    }
+    return false;
+  }
+
+  private buildFormData(data: any): FormData {
+    const formData = new FormData();
+
+    const appendToFormData = (obj: any, prefix = "") => {
+      for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+          const value = obj[key];
+          const formKey = prefix ? `${prefix}[${key}]` : key;
+
+          if (value instanceof File || value instanceof Blob) {
+            formData.append(formKey, value);
+          } else if (
+            value &&
+            typeof value === "object" &&
+            !(value instanceof Date)
+          ) {
+            appendToFormData(value, formKey);
+          } else if (value !== null && value !== undefined) {
+            formData.append(formKey, String(value));
+          }
+        }
+      }
+    };
+
+    appendToFormData(data);
+    return formData;
+  }
+
+  private async buildRequestConfig(
+    method: HttpMethod,
+    input: any,
+    options?: ClientOptions
+  ) {
+    const hasBody = method !== "get" && method !== "head" && input?.body;
+    const hasFiles = input?.body && this.hasFileData(input.body);
+    const headers = await this.buildHeaders(input, hasBody, hasFiles);
+
+    let body: string | FormData | undefined;
+
+    if (hasBody) {
+      if (hasFiles) body = this.buildFormData(input.body);
+      else body = JSON.stringify(input.body);
+    }
 
     return {
-      credentials: this.options?.credentials,
+      credentials: options?.credentials || this.options?.credentials,
       method: method,
       headers: headers,
-      body:
-        method !== "get" && method !== "head" && input?.body
-          ? JSON.stringify(input.body)
+      body: body,
+      signal: options?.timeout
+        ? AbortSignal.timeout(options.timeout)
+        : this.options?.timeout
+          ? AbortSignal.timeout(this.options.timeout)
           : undefined,
-      signal: this.options?.timeout
-        ? AbortSignal.timeout(this.options.timeout)
-        : undefined,
     } as RequestInit;
   }
 
-  private async executeInterceptors(
-    url: URL,
-    config: RequestInit,
-    response?: Response,
-    error?: any
-  ) {
+  private async executeInterceptors({
+    url,
+    config,
+    response,
+    error,
+    options,
+  }: {
+    url: URL;
+    config: RequestInit;
+    response?: Response;
+    error?: any;
+    options?: ClientOptions;
+  }) {
     // Handle request interceptors
     if (!response && !error) {
       for (const requestInterceptor of this.interceptors?.onRequest || []) {
@@ -152,7 +213,7 @@ export class TypiClient {
           path: url.pathname,
           config,
           response,
-          retry: () => this.makeRequest(url, config),
+          retry: () => this.makeRequest(url, config, options),
         });
         if (isRouteHandlerResponse(result)) {
           return { result };
@@ -167,7 +228,7 @@ export class TypiClient {
           path: url.pathname,
           config,
           error,
-          retry: () => this.makeRequest(url, config),
+          retry: () => this.makeRequest(url, config, options),
         });
         if (isRouteHandlerResponse(result)) {
           return { result };
@@ -178,15 +239,20 @@ export class TypiClient {
     return {};
   }
 
-  private async makeRequest(url: URL, config: RequestInit): Promise<any> {
+  private async makeRequest(
+    url: URL,
+    config: RequestInit,
+    options?: ClientOptions
+  ): Promise<any> {
     try {
       const response = await fetch(url.toString(), config);
 
-      const interceptorResult = await this.executeInterceptors(
+      const interceptorResult = await this.executeInterceptors({
         url,
         config,
-        response
-      );
+        response,
+        options,
+      });
       if (interceptorResult.result) {
         return interceptorResult.result;
       }
@@ -194,10 +260,19 @@ export class TypiClient {
       const data = deserialize(await response.json());
       const status = getStatus(response.status as HttpStatusCode).key;
 
-      console[status === "OK" ? "log" : "error"](
-        `Request to ${url.toString()} returned status ${status}`,
-        data
-      );
+      console[status === "OK" ? "log" : "warn"]({
+        URL: url.toString(),
+        config: config,
+        status: status,
+        data: data,
+      });
+
+      if (
+        status !== "OK" &&
+        (options?.throwOnErrorStatus ?? this.options?.throwOnErrorStatus)
+      ) {
+        throw new Error((data as RouteHandlerErrorDataResponse).error.message);
+      }
 
       return {
         status: status,
@@ -205,13 +280,17 @@ export class TypiClient {
         response: response,
       };
     } catch (error) {
-      console.error(`Error making request to ${url.toString()}`, error);
-      const interceptorResult = await this.executeInterceptors(
+      console.error({
+        URL: url.toString(),
+        config: config,
+        error: error instanceof Error ? error : undefined,
+      });
+      const interceptorResult = await this.executeInterceptors({
         url,
         config,
-        undefined,
-        error
-      );
+        error,
+        options,
+      });
       if (interceptorResult.result) {
         return interceptorResult.result;
       }
@@ -219,12 +298,21 @@ export class TypiClient {
     }
   }
 
-  private async executeRequest(path: string, method: HttpMethod, input: any) {
+  private async executeRequest(
+    path: string,
+    method: HttpMethod,
+    input: any,
+    options?: ClientOptions
+  ) {
     const url = this.buildUrl(path, input);
-    let config = await this.buildRequestConfig(method, input);
+    let config = await this.buildRequestConfig(method, input, options);
 
     // Execute request interceptors
-    const interceptorResult = await this.executeInterceptors(url, config);
+    const interceptorResult = await this.executeInterceptors({
+      url,
+      config,
+      options,
+    });
 
     if (interceptorResult.result) {
       return interceptorResult.result;
@@ -234,11 +322,14 @@ export class TypiClient {
       config = interceptorResult.config;
     }
 
-    return this.makeRequest(url, config);
+    return this.makeRequest(url, config, options);
   }
 }
 
-export function createTypiClient<T extends TypiRouter>({
+export function createTypiClient<
+  TRouter extends TypiRouter,
+  TOptions extends ClientOptions,
+>({
   baseUrl,
   baseHeaders,
   interceptors,
@@ -247,15 +338,15 @@ export function createTypiClient<T extends TypiRouter>({
   baseUrl: string;
   baseHeaders?: BaseHeaders;
   interceptors?: RequestInterceptors;
-  options?: ClientOptions;
-}): TypiClientInstance<T> {
+  options?: TOptions;
+}): TypiClientInstance<TRouter, TOptions> {
   return new TypiClient(
     baseUrl,
     [],
     baseHeaders,
     interceptors,
     options
-  ) as TypiClientInstance<T>;
+  ) as TypiClientInstance<TRouter, TOptions>;
 }
 
 const isRouteHandlerResponse = (
