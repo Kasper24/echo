@@ -48,11 +48,26 @@ const generateUsers = async (count: number) => {
 
 const generatePrivacySettings = async (users: schema.User[]) => {
   console.log("Generating privacy settings...");
+
+  const privacyOptions = faker.helpers.arrayElement([
+    "everyone",
+    "contacts",
+    "nobody",
+  ]) as (typeof schema.privacyScopeEnum.enumValues)[number];
+  const randomPrivacy = () =>
+    faker.helpers.arrayElement([
+      privacyOptions,
+    ]) as (typeof schema.privacyScopeEnum.enumValues)[number];
+
   const settings = users.map((user) => ({
     userId: user.id,
-    showOnlineStatus: faker.datatype.boolean(0.8),
-    showLastSeen: faker.datatype.boolean(0.7),
-    showReadReceipts: faker.datatype.boolean(0.6),
+    showPicture: randomPrivacy(),
+    showDescription: randomPrivacy(),
+    showStatus: randomPrivacy(),
+    showLastSeen: randomPrivacy(),
+    showReadReceipts: randomPrivacy(),
+    allowCalls: randomPrivacy(),
+    allowMessages: randomPrivacy(),
   }));
 
   await db.insert(schema.userPrivacySettings).values(settings);
