@@ -32,9 +32,11 @@ const userRouter = createTypiRouter({
     patch: createTypiRouteHandler({
       input: {
         body: z.object({
-          name: z.string().optional(),
-          description: z.string().optional(),
-          picture: z.string().optional(),
+          user: z.object({
+            name: z.string().optional(),
+            description: z.string().optional(),
+            picture: z.instanceof(File).optional(),
+          }),
         }),
       },
       middlewares: [authMiddleware],
@@ -42,8 +44,9 @@ const userRouter = createTypiRouter({
         const user = await db
           .update(users)
           .set({
+            name: ctx.input.body.user.name,
+            description: ctx.input.body.user.description,
             updatedAt: new Date(),
-            ...ctx.input.body,
           })
           .where(eq(users.id, ctx.data.userId))
           .returning();
