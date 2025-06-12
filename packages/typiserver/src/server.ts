@@ -116,7 +116,26 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
           status: "OK",
           data: (data ?? {}) as TData extends undefined ? {} : TData,
         };
-        // console.log(successData);
+        console.log(
+          JSON.stringify(
+            {
+              time: new Date().toString(),
+              request: {
+                URL: req.originalUrl,
+                method: req.method,
+                body: req.body,
+                path: req.params,
+                query: req.query,
+              },
+              response: {
+                status: "OK",
+                data: successData.data,
+              },
+            },
+            null,
+            2
+          )
+        );
         return successData as any;
       }) as {
         (): RouteHandlerResponse<"OK", {}>;
@@ -139,10 +158,63 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
             },
           },
         };
-        console.error(errorData);
+        console.error(
+          JSON.stringify({
+            time: new Date().toString(),
+            request: {
+              URL: req.originalUrl,
+              method: req.method,
+              body: req.body,
+              path: req.params,
+              query: req.query,
+              status: errorData.status,
+            },
+            response: {
+              status: errorData.status,
+              data: errorData.data,
+            },
+          }),
+          null,
+          2
+        );
         return errorData;
       },
     };
+  }
+
+  private setNestedValue(obj: any, path: string[], value: any) {
+    let current = obj;
+    for (let i = 0; i < path.length - 1; i++) {
+      const key = path[i];
+      if (!(key in current)) {
+        // Check if next key is numeric to create array vs object
+        const nextKey = path[i + 1];
+        current[key] = /^\d+$/.test(nextKey) ? [] : {};
+      }
+      current = current[key];
+    }
+    current[path[path.length - 1]] = value;
+  }
+
+  private transformFilesToBody(body: any, files: Express.Multer.File[]) {
+    if (!files || files.length === 0) return body;
+
+    const result = { ...body };
+
+    files.forEach((file) => {
+      // Parse nested field names like 'user[picture]' -> user.picture
+      const fieldPath = file.fieldname.split(/[\[\]]+/).filter(Boolean);
+
+      // Create a File-like object that matches your Zod schema
+      const fileObject = new File([file.buffer], file.originalname, {
+        type: file.mimetype,
+      });
+
+      // Set the file in the correct nested position
+      this.setNestedValue(result, fieldPath, fileObject);
+    });
+
+    return result;
   }
 
   private parseInputs<TInput extends RouteHandlerInput>(
@@ -152,13 +224,20 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
     input: Exact<TInput, RouteHandlerInput>
   ) {
     const parsedInput: Record<string, any> = {};
+
+    // Transform multer files back into the body structure
+    const transformedBody = this.transformFilesToBody(
+      req.body,
+      req.files as Express.Multer.File[]
+    );
+
     const inputsToParse: {
       key: keyof RouteHandlerInput | "path";
       source: any;
       schema: z.ZodTypeAny | undefined;
     }[] = [
       { key: "headers", source: req.headers, schema: input?.headers },
-      { key: "body", source: req.body, schema: input?.body },
+      { key: "body", source: transformedBody, schema: input?.body },
       {
         key: "path",
         source: req.params,

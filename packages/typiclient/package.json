@@ -30,7 +30,7 @@
   "dependencies": {
     "@repo/typiserver": "*",
     "superjson": "^2.2.2",
-    "zod": "^3.22.4"
+    "zod": "^3.25.6"
   },
   "devDependencies": {
     "@repo/eslint-config": "*",
