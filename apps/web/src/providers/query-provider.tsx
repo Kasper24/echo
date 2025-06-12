@@ -2,9 +2,11 @@
 
 import {
   isServer,
+  MutationCache,
   QueryClient,
   QueryClientProvider,
 } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -17,6 +19,13 @@ function makeQueryClient() {
         retryDelay: 30000,
       },
     },
+    mutationCache: new MutationCache({
+      onError: (error) => {
+        // Handle mutation errors globally
+        toast.error(error.message);
+        console.error("Mutation error:", error);
+      },
+    }),
   });
 }
 

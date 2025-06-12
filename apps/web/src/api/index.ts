@@ -6,7 +6,12 @@ import {
 } from "@repo/typiclient";
 import type rootRouter from "@repo/api/router";
 
-const api = createTypiClient<typeof rootRouter>({
+const api = createTypiClient<
+  typeof rootRouter,
+  {
+    credentials: "include";
+  }
+>({
   baseUrl: "http://localhost:5000/api/v1",
   options: {
     credentials: "include",
@@ -45,7 +50,7 @@ const api = createTypiClient<typeof rootRouter>({
           !config._retry
         ) {
           config._retry = true;
-          await api.auth["refresh-token"].get();
+          await api.auth["refresh-token"].post();
           return await retry();
         }
       },
