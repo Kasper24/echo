@@ -5,9 +5,16 @@ import {
   text,
   timestamp,
   boolean,
+  pgEnum,
 } from "drizzle-orm/pg-core";
 import { createSelectSchema } from "drizzle-zod";
 import { timeStamps } from "./base";
+
+export const privacyScopeEnum = pgEnum("privacy_scope", [
+  "everyone",
+  "contacts",
+  "nobody",
+]);
 
 export const users = pgTable("users", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -29,9 +36,13 @@ export const userPrivacySettings = pgTable("user_privacy_settings", {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
-  showOnlineStatus: boolean().notNull().default(true),
-  showLastSeen: boolean().notNull().default(true),
-  showReadReceipts: boolean().notNull().default(true),
+  showPicture: privacyScopeEnum().notNull().default("everyone"),
+  showDescription: privacyScopeEnum().notNull().default("everyone"),
+  showStatus: privacyScopeEnum().notNull().default("everyone"),
+  showLastSeen: privacyScopeEnum().notNull().default("everyone"),
+  showReadReceipts: privacyScopeEnum().notNull().default("everyone"),
+  allowCalls: privacyScopeEnum().notNull().default("everyone"),
+  allowMessages: privacyScopeEnum().notNull().default("everyone"),
   ...timeStamps(false),
 });
 
