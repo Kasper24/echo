@@ -1,5 +1,4 @@
 import express, { type Express } from "express";
-import morgan from "morgan";
 import multer from "multer";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -10,12 +9,6 @@ export const createServer = (): Express => {
   const app = express();
   app
     .disable("x-powered-by")
-    .use(
-      morgan(
-        `:remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]`,
-        { immediate: true }
-      )
-    )
     .use(express.urlencoded({ extended: true }))
     .use(express.json())
     .use(
