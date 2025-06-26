@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useCurrentChat } from "@repo/web/app/(private)/(main)/_providers/current-chat-provider";
 import { cn } from "@repo/ui/lib/utils";
 import { format, isSameWeek } from "date-fns";
+import { Skeleton } from "@repo/ui/components/skeleton";
 
 const Chat = ({
   id,
@@ -46,7 +47,7 @@ const Chat = ({
         {
           "bg-muted": chatId === id,
           "hover:bg-muted/50": chatId !== id,
-        }
+        },
       )}
       onClick={() => setChatId(id)}
     >
@@ -88,19 +89,46 @@ const ChatList = () => {
     },
   });
 
-  if (isPending) return <div className="p-4 w-full">Loading...</div>;
-  if (isError)
-    return <div className="p-4 text-red-500">Error loading chats</div>;
-
   const filteredChats = searchQuery.trim()
-    ? data.chats.filter((chat) =>
-        chat.name.toLowerCase().includes(searchQuery.toLowerCase())
+    ? data?.chats.filter((chat) =>
+        chat.name.toLowerCase().includes(searchQuery.toLowerCase()),
       )
-    : data.chats;
+    : data?.chats;
 
   return (
     <ScrollArea className="h-[calc(100vh-190px)]">
-      {filteredChats.map((chat) => (
+      {isPending && (
+        <>
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={i} className="p-4 flex items-center gap-3 border-b">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+              <Skeleton className="h-4 w-12" />
+            </div>
+          ))}
+        </>
+      )}
+
+      {isError && <div className="p-4 text-red-500">Error loading chats</div>}
+
+      {!isPending &&
+        !isError &&
+        filteredChats?.length === 0 &&
+        searchQuery.trim() && (
+          <div className="p-4 text-muted-foreground">No chats found</div>
+        )}
+
+      {!isPending &&
+        !isError &&
+        filteredChats?.length === 0 &&
+        !searchQuery.trim() && (
+          <div className="p-4 text-muted-foreground">No chats yet</div>
+        )}
+
+      {filteredChats?.map((chat) => (
         <Chat
           key={chat.id}
           id={chat.id}

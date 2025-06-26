@@ -20,6 +20,7 @@ import {
 import { cn } from "@repo/ui/lib/utils";
 import { Button } from "@repo/ui/components/button";
 import { useSearch } from "../_providers/search-provider";
+import { Skeleton } from "@repo/ui/components/skeleton";
 
 type Call = ApiOutputs["/call"]["/"]["get"]["calls"][number];
 
@@ -37,28 +38,51 @@ const CallList = () => {
     },
   });
 
-  if (isPending) {
-    return <p>Loading...</p>;
-  }
-
-  if (isError) {
-    return <p>Error</p>;
-  }
-
   const filteredCalls = searchQuery.trim()
-    ? data.calls.filter((call) =>
+    ? data?.calls.filter((call) =>
         call.participants.some((p) =>
-          p.user.name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
+          p.user.name.toLowerCase().includes(searchQuery.toLowerCase()),
+        ),
       )
-    : data.calls;
+    : data?.calls;
 
   return (
     <ScrollArea className="h-[calc(100vh-190px)]">
-      {filteredCalls.map((call, index) => {
+      {isPending && (
+        <>
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div key={i} className="p-4 flex items-center gap-3 border-b">
+              <Skeleton className="h-12 w-12 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+              <Skeleton className="h-4 w-12" />
+            </div>
+          ))}
+        </>
+      )}
+
+      {isError && <div className="p-4 text-red-500">Error loading calls</div>}
+
+      {!isPending &&
+        !isError &&
+        filteredCalls?.length === 0 &&
+        searchQuery.trim() && (
+          <div className="p-4 text-muted-foreground">No calls found</div>
+        )}
+
+      {!isPending &&
+        !isError &&
+        filteredCalls?.length === 0 &&
+        !searchQuery.trim() && (
+          <div className="p-4 text-muted-foreground">No calls yet</div>
+        )}
+
+      {filteredCalls?.map((call, index) => {
         return (
           <div key={call.call.id} className="p-4">
-            <DateDivider call={call} prevCall={data.calls[index - 1]} />
+            <DateDivider call={call} prevCall={data?.calls[index - 1]} />
             <Call call={call} />
           </div>
         );
@@ -153,7 +177,7 @@ const CallStatus = ({ call }: { call: Call }) => {
           "text-sm capitalize",
           call.call.status === "missed"
             ? "text-red-600"
-            : "text-muted-foreground"
+            : "text-muted-foreground",
         )}
       >
         {call.call.status}

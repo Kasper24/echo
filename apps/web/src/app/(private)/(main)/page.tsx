@@ -14,6 +14,7 @@ import {
   AvatarImage,
 } from "@repo/ui/components/avatar";
 import { Input } from "@repo/ui/components/input";
+import { Skeleton } from "@repo/ui/components/skeleton";
 import useMediaQuery from "@repo/web/hooks/use-media-query";
 import { cn } from "@repo/ui/lib/utils";
 import CurrentChat from "./_components/current-chat";
@@ -86,28 +87,45 @@ const Header = () => {
   const { isError, isPending, data } = useUser();
   const { setSettingsOpen } = useSettingsDrawer();
 
-  if (isError || isPending) {
-    return null;
+  if (isPending) {
+    return (
+      <div className="h-16 px-4 border-b border-border flex items-center gap-2">
+        <Skeleton className="size-8"></Skeleton>
+        <Skeleton className="size-8 w-full"></Skeleton>
+      </div>
+    );
   }
 
+  const displayName = isError ? "Unable to load" : data?.user?.name || "User";
+  const displayDescription = isError
+    ? "Connection error"
+    : data?.user?.description;
+  const avatarSrc = isError ? undefined : data?.user?.picture;
+  const avatarFallback = isError ? "?" : data?.user?.name?.slice(0, 1) || "U";
+  const statusColor = isError ? "bg-red-500" : "bg-green-500";
+
   return (
-    <div className="h-16 px-4 border-b border-border flex items-center justify-between bg-card">
+    <div className="h-16 px-4 border-b border-border flex items-center">
       <div
         className="flex items-center gap-3 flex-1 cursor-pointer hover:bg-muted/50 rounded-md p-2 -m-2 transition-colors"
         onClick={() => setSettingsOpen(true)}
       >
         <div className="relative">
           <Avatar className="ring-2">
-            <AvatarImage src={data.user.picture ?? undefined} />
-            <AvatarFallback>{data.user.name.slice(0, 1)}</AvatarFallback>
+            <AvatarImage src={avatarSrc} />
+            <AvatarFallback>{avatarFallback}</AvatarFallback>
           </Avatar>
-          <span className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-green-500 border-2 border-card"></span>
+          <span
+            className={`absolute -bottom-1 -right-1 h-3 w-3 rounded-full ${statusColor} border-2 border-card`}
+          ></span>
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="font-semibold text-sm truncate">{data.user.name}</h2>
-          <p className="text-xs text-muted-foreground truncate max-w-70">
-            {data.user.description}
-          </p>
+          <h2 className="font-semibold text-sm truncate">{displayName}</h2>
+          {displayDescription && (
+            <p className="text-xs text-muted-foreground truncate max-w-70">
+              {displayDescription}
+            </p>
+          )}
         </div>
         <ChevronDown className="h-4 w-4 text-muted-foreground" />
       </div>
@@ -141,7 +159,7 @@ const MainArea = () => {
   return chatId ? (
     <CurrentChat />
   ) : (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center h-screen">
       <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
         {currentTab === "chats" ? (
           <MessageSquare className="h-8 w-8 text-primary/60" />
