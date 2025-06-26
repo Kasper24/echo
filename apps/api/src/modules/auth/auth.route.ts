@@ -143,7 +143,7 @@ const authRouter = createTypiRouter({
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
             maxAge: process.env.JWT_ACCESS_TOKEN_MAX_AGE,
-          }
+          },
         );
         ctx.response.cookie(
           process.env.JWT_REFRESH_TOKEN_COOKIE_KEY,
@@ -153,7 +153,7 @@ const authRouter = createTypiRouter({
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
             maxAge: process.env.JWT_REFRESH_TOKEN_MAX_AGE,
-          }
+          },
         );
 
         await db
@@ -175,7 +175,7 @@ const authRouter = createTypiRouter({
       },
       handler: async (ctx) => {
         const [error] = await attempt(() =>
-          jwtVerifyAccessToken(ctx.input.cookies.accessToken)
+          jwtVerifyAccessToken(ctx.input.cookies.accessToken),
         );
         if (error) return ctx.error("UNAUTHORIZED", error.message);
 
@@ -194,7 +194,7 @@ const authRouter = createTypiRouter({
       },
       handler: async (ctx) => {
         const [error, data] = await attempt(() =>
-          jwtVerifyRefreshToken(ctx.input.cookies.refreshToken)
+          jwtVerifyRefreshToken(ctx.input.cookies.refreshToken),
         );
         if (error) return ctx.error("UNAUTHORIZED", error.message);
 
@@ -211,7 +211,7 @@ const authRouter = createTypiRouter({
 
         const isTokenValid = await argon2.verify(
           storedToken.token,
-          ctx.input.cookies.refreshToken
+          ctx.input.cookies.refreshToken,
         );
         if (!isTokenValid)
           return ctx.error("UNAUTHORIZED", "Invalid refresh token.");
@@ -226,7 +226,7 @@ const authRouter = createTypiRouter({
             secure: process.env.NODE_ENV === "production",
             sameSite: "lax",
             maxAge: process.env.JWT_ACCESS_TOKEN_MAX_AGE,
-          }
+          },
         );
 
         return ctx.success({

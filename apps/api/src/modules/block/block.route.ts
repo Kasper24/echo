@@ -38,7 +38,7 @@ const blockRouter = createTypiRouter({
         const blockedUser = await db.query.blockedUsers.findFirst({
           where: and(
             eq(blockedUsers.blockerId, ctx.data.userId),
-            eq(blockedUsers.blockedId, blockedUserId)
+            eq(blockedUsers.blockedId, blockedUserId),
           ),
         });
 
@@ -68,15 +68,15 @@ const blockRouter = createTypiRouter({
           .where(
             and(
               eq(blockedUsers.blockerId, ctx.data.userId),
-              eq(blockedUsers.blockedId, unblockedUserId)
-            )
+              eq(blockedUsers.blockedId, unblockedUserId),
+            ),
           )
           .returning();
 
         if (result.length === 0)
           return ctx.error(
             "BAD_REQUEST",
-            "User not found or already unblocked."
+            "User not found or already unblocked.",
           );
 
         return ctx.success({

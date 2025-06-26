@@ -29,8 +29,8 @@ const callRouter = createTypiRouter({
             and(
               eq(callParticipants.userId, userId),
               isNotNull(callParticipants.joinedAt),
-              isNotNull(callParticipants.leftAt)
-            )
+              isNotNull(callParticipants.leftAt),
+            ),
           )
           .orderBy(desc(callParticipants.joinedAt));
 
@@ -47,7 +47,7 @@ const callRouter = createTypiRouter({
 
             const duration = formatDistanceStrict(
               call.self.leftAt || new Date(),
-              call.self.joinedAt || new Date()
+              call.self.joinedAt || new Date(),
             );
 
             const isCaller = call.call.createdBy === userId;
@@ -55,7 +55,7 @@ const callRouter = createTypiRouter({
               ? participants.some(
                   (p) =>
                     p.user.id !== userId &&
-                    p.callParticipant.status === "answered"
+                    p.callParticipant.status === "answered",
                 )
                 ? "answered"
                 : "missed"
@@ -63,7 +63,7 @@ const callRouter = createTypiRouter({
                   .status || "missed";
 
             const participantsWithoutSelf = participants.filter(
-              (participant) => participant.user.id !== userId
+              (participant) => participant.user.id !== userId,
             );
 
             return {
@@ -76,7 +76,7 @@ const callRouter = createTypiRouter({
               participants: participantsWithoutSelf,
               self: call.self,
             };
-          })
+          }),
         );
 
         return ctx.success({

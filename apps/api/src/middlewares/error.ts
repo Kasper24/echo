@@ -5,7 +5,7 @@ const errorHandler: ErrorRequestHandler = (
   error: unknown,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const status = getStatus("INTERNAL_SERVER_ERROR");
 

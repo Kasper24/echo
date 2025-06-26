@@ -24,7 +24,7 @@ const rateLimitMiddleware = ({
     if (requests > limit) {
       return ctx.error(
         "TOO_MANY_REQUESTS",
-        message ?? "Too many requests, please try again later"
+        message ?? "Too many requests, please try again later",
       );
     }
 

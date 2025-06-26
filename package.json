@@ -23,17 +23,17 @@
     "format:write": "prettier --write \"**/*.{ts,tsx,js,css,yaml}\""
   },
   "lint-staged": {
-    "apps/backend/**/*.{js,jsx,ts,tsx}": [
-      "npm run lint:fix -w backend"
+    "apps/api/**/*.{js,jsx,ts,tsx}": [
+      "npm run lint:fix -w @repo/api"
     ],
-    "apps/backend/**/*.{ts,tsx}": [
-      "sh -c 'npm run lint:types -w backend'"
+    "apps/api/**/*.{ts,tsx}": [
+      "sh -c 'npm run lint:types -w @repo/api'"
     ],
-    "apps/frontend/**/*.{js,jsx,ts,tsx}": [
-      "npm run lint:fix -w frontend"
+    "apps/web/**/*.{js,jsx,ts,tsx}": [
+      "npm run lint:fix -w @repo/web"
     ],
-    "apps/frontend/**/*.{ts,tsx}": [
-      "sh -c 'npm run lint:types -w frontend'"
+    "apps/web/**/*.{ts,tsx}": [
+      "sh -c 'npm run lint:types -w @repo/web'"
     ],
     "packages/database/**/*.{js,jsx,ts,tsx}": [
       "npm run lint:fix -w @repo/database"

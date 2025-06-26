@@ -17,7 +17,7 @@ export const createServer = (): Express => {
         limits: {
           fileSize: 10 * 1024 * 1024, // 10MB limit
         },
-      }).any()
+      }).any(),
     )
     .use(cookieParser())
     .use(cors({ origin: "http://localhost:3002", credentials: true }))

@@ -29,13 +29,13 @@ const friendsRouter = createTypiRouter({
             users,
             and(
               eq(friends.status, "accepted"),
-              or(eq(friends.userA, userId), eq(friends.userB, userId))
-            )
+              or(eq(friends.userA, userId), eq(friends.userB, userId)),
+            ),
           )
           .where(
             and(
-              not(eq(users.id, userId)) // Exclude self from results
-            )
+              not(eq(users.id, userId)), // Exclude self from results
+            ),
           );
 
         const friendsRequestsSent = await db
@@ -82,13 +82,13 @@ const friendsRouter = createTypiRouter({
         if (userId === friendId)
           return ctx.error(
             "BAD_REQUEST",
-            "You can't send a friend request to yourself"
+            "You can't send a friend request to yourself",
           );
 
         const friendship = await db.query.friends.findFirst({
           where: or(
             and(eq(friends.userA, userId), eq(friends.userB, friendId)),
-            and(eq(friends.userB, userId), eq(friends.userA, friendId))
+            and(eq(friends.userB, userId), eq(friends.userA, friendId)),
           ),
           with: {
             userA: true,
@@ -99,14 +99,14 @@ const friendsRouter = createTypiRouter({
         if (friendship?.status === "accepted")
           return ctx.error(
             "BAD_REQUEST",
-            "You already have a friendship with this user"
+            "You already have a friendship with this user",
           );
 
         if (friendship?.status === "pending") {
           if (friendship.userB.id === userId)
             return ctx.error(
               "BAD_REQUEST",
-              "Please accept or deny this friend request"
+              "Please accept or deny this friend request",
             );
           else if (friendship.userA.id === userId)
             return ctx.error("BAD_REQUEST", "Friend request already exists");
@@ -132,13 +132,13 @@ const friendsRouter = createTypiRouter({
         if (userId === friendId)
           return ctx.error(
             "BAD_REQUEST",
-            "You can't delete yourself from friends"
+            "You can't delete yourself from friends",
           );
 
         const friendship = await db.query.friends.findFirst({
           where: or(
             and(eq(friends.userA, userId), eq(friends.userB, friendId)),
-            and(eq(friends.userB, userId), eq(friends.userA, friendId))
+            and(eq(friends.userB, userId), eq(friends.userA, friendId)),
           ),
         });
 
@@ -147,7 +147,7 @@ const friendsRouter = createTypiRouter({
         if (friendship.status === "pending")
           return ctx.error(
             "BAD_REQUEST",
-            "You can't delete a pending friend request"
+            "You can't delete a pending friend request",
           );
 
         const result = await db
@@ -155,8 +155,8 @@ const friendsRouter = createTypiRouter({
           .where(
             or(
               and(eq(friends.userA, userId), eq(friends.userB, friendId)),
-              and(eq(friends.userB, userId), eq(friends.userA, friendId))
-            )
+              and(eq(friends.userB, userId), eq(friends.userA, friendId)),
+            ),
           )
           .returning();
 
@@ -182,15 +182,15 @@ const friendsRouter = createTypiRouter({
             and(
               eq(friends.userA, userId),
               eq(friends.userB, friendId),
-              eq(friends.status, "pending")
-            )
+              eq(friends.status, "pending"),
+            ),
           )
           .returning();
 
         if (result.length === 0)
           return ctx.error(
             "BAD_REQUEST",
-            "Friend request not found or already accepted."
+            "Friend request not found or already accepted.",
           );
 
         return ctx.success({
@@ -211,15 +211,15 @@ const friendsRouter = createTypiRouter({
             and(
               eq(friends.userA, userId),
               eq(friends.userB, friendId),
-              eq(friends.status, "pending")
-            )
+              eq(friends.status, "pending"),
+            ),
           )
           .returning();
 
         if (result.length === 0)
           return ctx.error(
             "BAD_REQUEST",
-            "Friend request not found or already denied."
+            "Friend request not found or already denied.",
           );
 
         return ctx.success({

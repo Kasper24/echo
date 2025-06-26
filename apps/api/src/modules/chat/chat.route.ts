@@ -36,8 +36,8 @@ const enrichDirectChat = async <T extends Chat>(chat: T, userId: number) => {
           .where(
             and(
               eq(chatParticipants.chatId, chat.id),
-              ne(chatParticipants.userId, userId)
-            )
+              ne(chatParticipants.userId, userId),
+            ),
           )
       )[0] || unavailableUserData();
 
@@ -45,7 +45,7 @@ const enrichDirectChat = async <T extends Chat>(chat: T, userId: number) => {
       (await db.query.blockedUsers.findFirst({
         where: and(
           eq(blockedUsers.blockerId, userId),
-          eq(blockedUsers.blockedId, otherUser.id)
+          eq(blockedUsers.blockedId, otherUser.id),
         ),
       })) !== undefined;
 
@@ -148,11 +148,11 @@ const chatRouter = createTypiRouter({
                         .where(
                           and(
                             eq(messageReadReceipts.messageId, messages.id), // Add this line to match specific message
-                            eq(messageReadReceipts.userId, userId)
-                          )
-                        )
-                    )
-                  )
+                            eq(messageReadReceipts.userId, userId),
+                          ),
+                        ),
+                    ),
+                  ),
                 )
             )[0].count;
 
@@ -163,7 +163,7 @@ const chatRouter = createTypiRouter({
               latestMessage: processedLatestMessage,
               unreadMessagesCount,
             };
-          })
+          }),
         );
 
         return ctx.success({
@@ -182,13 +182,13 @@ const chatRouter = createTypiRouter({
         const isParticipant = await db.query.chatParticipants.findFirst({
           where: and(
             eq(chatParticipants.userId, userId),
-            eq(chatParticipants.chatId, chatId)
+            eq(chatParticipants.chatId, chatId),
           ),
         });
         if (!isParticipant)
           return ctx.error(
             "UNAUTHORIZED",
-            "You are not a participant of this chat"
+            "You are not a participant of this chat",
           );
 
         const chat = await db.query.chats.findFirst({
@@ -241,13 +241,13 @@ const chatRouter = createTypiRouter({
         const isParticipant = await db.query.chatParticipants.findFirst({
           where: and(
             eq(chatParticipants.userId, userId),
-            eq(chatParticipants.chatId, chatId)
+            eq(chatParticipants.chatId, chatId),
           ),
         });
         if (!isParticipant)
           return ctx.error(
             "UNAUTHORIZED",
-            "You are not a participant of this chat"
+            "You are not a participant of this chat",
           );
 
         const chat = await db.query.chats.findFirst({
@@ -320,13 +320,13 @@ const chatRouter = createTypiRouter({
         const isParticipant = await db.query.chatParticipants.findFirst({
           where: and(
             eq(chatParticipants.userId, userId),
-            eq(chatParticipants.chatId, chatId)
+            eq(chatParticipants.chatId, chatId),
           ),
         });
         if (!isParticipant)
           return ctx.error(
             "UNAUTHORIZED",
-            "You are not a participant of this chat"
+            "You are not a participant of this chat",
           );
 
         const chat = await db.query.chats.findFirst({
@@ -336,7 +336,7 @@ const chatRouter = createTypiRouter({
         const chatMessages = await db.query.messages.findMany({
           where: and(
             eq(messages.chatId, chatId),
-            ilike(messages.content, `%${ctx.input.query.searchTerm}%`)
+            ilike(messages.content, `%${ctx.input.query.searchTerm}%`),
           ),
           orderBy: [desc(messages.createdAt)],
           with: {
