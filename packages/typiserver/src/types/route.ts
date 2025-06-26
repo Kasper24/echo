@@ -12,7 +12,7 @@ export type RouteHandler<
   TMiddlewares extends MiddlewareHandlers = never,
   TOutput extends RouteHandlerResponse = RouteHandlerResponse,
 > = (
-  ctx: RouteHandlerContext<TPath, TInput, TMiddlewares>
+  ctx: RouteHandlerContext<TPath, TInput, TMiddlewares>,
 ) => TOutput | Promise<TOutput>;
 
 export type RouteDefinition<

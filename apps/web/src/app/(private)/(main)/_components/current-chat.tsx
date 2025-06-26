@@ -152,16 +152,16 @@ const useToggleBlockUser = () => {
     },
     onSuccess: (_, __, context) => {
       toast.success(
-        `Successfully ${context?.previousIsBlocked ? "unblocked" : "blocked"} user.`
+        `Successfully ${context?.previousIsBlocked ? "unblocked" : "blocked"} user.`,
       );
     },
     onError: (_, __, context) => {
       queryClient.setQueryData(
         ["chatDetails", chatId],
-        context?.previousIsBlocked
+        context?.previousIsBlocked,
       );
       toast.error(
-        `Failed to ${context?.previousIsBlocked ? "unblock" : "block"} user.`
+        `Failed to ${context?.previousIsBlocked ? "unblock" : "block"} user.`,
       );
     },
     onSettled: () => {
@@ -267,7 +267,7 @@ const Header = () => {
                     data.chat.otherUser.lastSeen,
                     {
                       addSuffix: true,
-                    }
+                    },
                   )}`}
             </p>
           )}
@@ -678,7 +678,7 @@ const SearchMessagesDrawer = () => {
         side={isMobile ? "bottom" : "right"}
         className={cn(
           "flex flex-col w-full sm:max-w-md p-0 bg-card",
-          isMobile && "h-[85vh] rounded-t-xl"
+          isMobile && "h-[85vh] rounded-t-xl",
         )}
       >
         <SheetHeader className="p-4 border-b">
@@ -757,7 +757,7 @@ const SearchMessagesDrawer = () => {
                             </span>
                           ) : (
                             part
-                          )
+                          ),
                         )}
                     </p>
                   </div>
@@ -866,7 +866,7 @@ const MessagesList = () => {
 
   const allMessages = React.useMemo(
     () => data?.pages.flatMap((page) => page.messages).reverse(),
-    [data]
+    [data],
   );
 
   return (
@@ -893,7 +893,7 @@ const MessagesList = () => {
                 "bg-accent m-5 flex w-1/2 flex-col gap-y-2 rounded-sm p-2",
                 {
                   "bg-primary text-secondary justify-self-end": isSentByUser,
-                }
+                },
               )}
             >
               <MessageSender prevSenderId={prevSenderId} message={message} />
@@ -1054,10 +1054,10 @@ const MessageReadReceipt = ({ message }: { message: ChatMessage }) => {
   const isSentByUser = message.sender.id === userId;
 
   const receivedReceipts = message.readReceipnts.filter(
-    (receipt) => receipt.receivedAt !== null
+    (receipt) => receipt.receivedAt !== null,
   );
   const readReceipts = message.readReceipnts.filter(
-    (receipt) => receipt.readAt !== null
+    (receipt) => receipt.readAt !== null,
   );
 
   const isReceived = receivedReceipts.length > 0;

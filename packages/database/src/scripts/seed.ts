@@ -22,7 +22,7 @@ const dbSeed = async () => {
   await addChatParticipants(insertedUsers, insertedChats);
   const insertedMessages = await generateMessages(
     insertedChats,
-    MAX_MESSAGES_PER_CHAT
+    MAX_MESSAGES_PER_CHAT,
   );
 
   await generateAttachments(insertedMessages);
@@ -148,7 +148,7 @@ const generateChats = async (count: number) => {
 
 const addChatParticipants = async (
   users: schema.User[],
-  chats: schema.Chat[]
+  chats: schema.Chat[],
 ) => {
   console.log("Adding chat participants...");
   const participants = [];
@@ -173,7 +173,7 @@ const addChatParticipants = async (
           chatId: chat.id,
           role: i === 0 ? "admin" : "user",
           createdAt: faker.date.recent({ days: 30 }),
-        })
+        }),
       );
     }
   }
@@ -199,7 +199,7 @@ const generateMessages = async (chats: schema.Chat[], maxPerChat: number) => {
 
     for (let i = 0; i < count; i++) {
       current = new Date(
-        current.getTime() + faker.number.int({ min: 60_000, max: 86_400_000 })
+        current.getTime() + faker.number.int({ min: 60_000, max: 86_400_000 }),
       );
 
       const sender = faker.helpers.arrayElement(participants);
@@ -260,7 +260,7 @@ const generateReadReceipts = async (messages: schema.Message[]) => {
       .from(schema.chatParticipants)
       .where(
         () =>
-          sql`${schema.chatParticipants.chatId} = ${msg.chatId} AND ${schema.chatParticipants.userId} != ${msg.senderId}`
+          sql`${schema.chatParticipants.chatId} = ${msg.chatId} AND ${schema.chatParticipants.userId} != ${msg.senderId}`,
       );
 
     for (const p of participants) {
@@ -297,7 +297,7 @@ const generateReadReceipts = async (messages: schema.Message[]) => {
 const generateCallHistory = async (
   users: schema.User[],
   chats: schema.Chat[],
-  numCalls: number
+  numCalls: number,
 ) => {
   console.log("Generating call history...");
 
@@ -373,7 +373,7 @@ const generateCallHistory = async (
   await db.insert(schema.callParticipants).values(callParticipants);
 
   console.log(
-    `Created ${insertedCalls.length} calls with ${callParticipants.length} participants`
+    `Created ${insertedCalls.length} calls with ${callParticipants.length} participants`,
   );
 };
 

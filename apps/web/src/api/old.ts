@@ -84,7 +84,7 @@ class Api {
   constructor(
     baseUrl: string,
     headers: BaseHeaders,
-    routes: Record<string, Route> = {}
+    routes: Record<string, Route> = {},
   ) {
     this.baseUrl = baseUrl;
     this.baseHeaders = headers;
@@ -101,7 +101,7 @@ class Api {
 
   private async executeRequest<T extends Route>(
     route: T,
-    params?: RouteParams<T>
+    params?: RouteParams<T>,
     // @ts-expect-error - TypeScript doesn't know that the response is valid
   ): ApiResponse<T> {
     let url = new URL(route.path, this.baseUrl);
@@ -110,7 +110,7 @@ class Api {
     if (route.params?.pathParams && params?.pathParams) {
       let path = route.path;
       const validatedPathParams = route.params.pathParams.parse(
-        params.pathParams
+        params.pathParams,
       );
 
       Object.entries(validatedPathParams).forEach(([key, value]) => {
@@ -165,8 +165,8 @@ class Api {
             } else {
               return [name, valueOrFunction];
             }
-          }
-        )
+          },
+        ),
       );
 
       headers = { ...headers, ...Object.fromEntries(headerEntries) };
@@ -192,7 +192,7 @@ class Api {
         }
         case "form-url":
           body = new URLSearchParams(
-            validatedBody as Record<string, string>
+            validatedBody as Record<string, string>,
           ).toString();
           break;
         case "binary":
@@ -470,7 +470,7 @@ const api = createApi({
                 }),
               }),
               unreadMessagesCount: z.number(),
-            })
+            }),
           ),
         }),
         ...errorsSchemas(true),
@@ -494,7 +494,7 @@ const api = createApi({
               user: z.object({
                 ...userSchema,
               }),
-            })
+            }),
           ),
         }),
         ...errorsSchemas(true),
@@ -521,7 +521,7 @@ const api = createApi({
               readReceipnts: z.array(
                 z.object({
                   ...messageReadReceiptSchema,
-                })
+                }),
               ),
               sender: z.object({
                 ...userSchema,
@@ -529,9 +529,9 @@ const api = createApi({
               attachments: z.array(
                 z.object({
                   ...messageAttachmentSchema,
-                })
+                }),
               ),
-            })
+            }),
           ),
           pagination: z.object({
             ...paginationSchema,
@@ -550,19 +550,19 @@ const api = createApi({
             z.object({
               id: z.number(),
               phoneNumber: z.string(),
-            })
+            }),
           ),
           friendsRequestsSent: z.array(
             z.object({
               id: z.number(),
               phoneNumber: z.string(),
-            })
+            }),
           ),
           friendsRequestsReceived: z.array(
             z.object({
               id: z.number(),
               phoneNumber: z.string(),
-            })
+            }),
           ),
         }),
         ...errorsSchemas(true),
@@ -660,7 +660,7 @@ const api = createApi({
           blockedUsers: z.array(
             z.object({
               ...blockSchema,
-            })
+            }),
           ),
         }),
         ...errorsSchemas(true),

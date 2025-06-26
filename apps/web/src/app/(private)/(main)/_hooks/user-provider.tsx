@@ -5,7 +5,7 @@ const useUser = () => {
   return useQuery({
     queryKey: ["user"],
     queryFn: async () => {
-      const {  data } = await api.user[""].get({
+      const { data } = await api.user[""].get({
         options: {
           throwOnErrorStatus: true,
         },

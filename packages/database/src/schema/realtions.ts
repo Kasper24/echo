@@ -19,7 +19,7 @@ export const userPrivacySettingsRelations = relations(
       fields: [userPrivacySettings.userId],
       references: [users.id],
     }),
-  })
+  }),
 );
 
 export const friendsRealtions = relations(friends, ({ one }) => ({
@@ -64,7 +64,7 @@ export const chatParticipantsRelations = relations(
       fields: [chatParticipants.chatId],
       references: [chats.id],
     }),
-  })
+  }),
 );
 
 export const messagesRelations = relations(messages, ({ one, many }) => ({
@@ -96,7 +96,7 @@ export const messageReadReceiptsRelations = relations(
       fields: [messageReadReceipts.userId],
       references: [users.id],
     }),
-  })
+  }),
 );
 
 export const messageAttachmentsRelations = relations(
@@ -106,5 +106,5 @@ export const messageAttachmentsRelations = relations(
       fields: [messageAttachments.messageId],
       references: [messages.id],
     }),
-  })
+  }),
 );

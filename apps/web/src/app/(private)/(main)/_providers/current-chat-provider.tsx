@@ -7,7 +7,9 @@ interface CurrentChatContextType {
   setChatId: (chatId: number | null) => void;
 }
 
-const CurrentChatContext = React.createContext<CurrentChatContextType | undefined>(undefined);
+const CurrentChatContext = React.createContext<
+  CurrentChatContextType | undefined
+>(undefined);
 
 const CurrentChatProvider = ({ children }: { children: React.ReactNode }) => {
   const [chatId, setChatId] = React.useState<number | null>(null);
@@ -21,7 +23,10 @@ const CurrentChatProvider = ({ children }: { children: React.ReactNode }) => {
 
 const useCurrentChat = () => {
   const context = React.useContext(CurrentChatContext);
-  if (!context) throw new Error("useCurrentChat must be used within an CurrentChatProvider");
+  if (!context)
+    throw new Error(
+      "useCurrentChat must be used within an CurrentChatProvider",
+    );
   return context;
 };
 

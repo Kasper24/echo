@@ -21,7 +21,7 @@ import {
 } from "./http";
 
 const createTypiRouter = <TRoutes extends RouteMap>(
-  routes: TRoutes
+  routes: TRoutes,
 ): TypiRouter<TRoutes> => {
   return new TypiRouter(routes);
 };
@@ -35,7 +35,7 @@ function createTypiRouteHandler<
   TOutput extends RouteHandlerResponse,
   TMiddlewares extends MiddlewareHandlers,
 >(
-  RouteDefinition: RouteDefinition<string, TInput, TMiddlewares, TOutput>
+  RouteDefinition: RouteDefinition<string, TInput, TMiddlewares, TOutput>,
 ): RouteDefinition<string, TInput, TMiddlewares, TOutput>;
 
 function createTypiRouteHandler<
@@ -45,7 +45,7 @@ function createTypiRouteHandler<
   TPath extends string = string,
 >(
   path: TPath,
-  RouteDefinition: RouteDefinition<TPath, TInput, TMiddlewares, TOutput>
+  RouteDefinition: RouteDefinition<TPath, TInput, TMiddlewares, TOutput>,
 ): RouteDefinition<TPath, TInput, TMiddlewares, TOutput>;
 
 function createTypiRouteHandler(pathOrRouteDef: any, maybeRouteDef?: any): any {
@@ -78,7 +78,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
               MiddlewareHandlers,
               RouteHandlerResponse
             >,
-            config.middlewares as MiddlewareHandlers
+            config.middlewares as MiddlewareHandlers,
           );
         });
       }
@@ -110,7 +110,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
       request: req,
       response: res,
       success: (<TData extends Record<string, any>>(
-        data?: TData
+        data?: TData,
       ): RouteHandlerResponse<"OK", TData extends undefined ? {} : TData> => {
         const successData = {
           status: "OK",
@@ -133,19 +133,19 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
               },
             },
             null,
-            2
-          )
+            2,
+          ),
         );
         return successData as any;
       }) as {
         (): RouteHandlerResponse<"OK", {}>;
         <TData extends Record<string, any>>(
-          data: TData
+          data: TData,
         ): RouteHandlerResponse<"OK", TData>;
       },
       error: <TErrorKey extends HttpErrorStatusKey>(
         key: TErrorKey,
-        message?: string
+        message?: string,
       ): RouteHandlerResponse<TErrorKey, RouteHandlerErrorDataResponse> => {
         const errorData = {
           status: key,
@@ -175,7 +175,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
             },
           }),
           null,
-          2
+          2,
         );
         return errorData;
       },
@@ -221,14 +221,14 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
     req: Request,
     ctx: RouteHandlerContext,
     path: string,
-    input: Exact<TInput, RouteHandlerInput>
+    input: Exact<TInput, RouteHandlerInput>,
   ) {
     const parsedInput: Record<string, any> = {};
 
     // Transform multer files back into the body structure
     const transformedBody = this.transformFilesToBody(
       req.body,
-      req.files as Express.Multer.File[]
+      req.files as Express.Multer.File[],
     );
 
     const inputsToParse: {
@@ -256,7 +256,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
               "BAD_REQUEST",
               result.error instanceof ZodError
                 ? result.error.message
-                : `Invalid ${key}`
+                : `Invalid ${key}`,
             ),
           };
         }
@@ -284,7 +284,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
           return {
             error: middlewareCtx.error(
               result.status as HttpErrorStatusKey,
-              result.data.error.message || "An unexpected error occurred"
+              result.data.error.message || "An unexpected error occurred",
             ),
           };
         } else {
@@ -298,7 +298,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
             "INTERNAL_SERVER_ERROR",
             error instanceof Error
               ? error.message
-              : "An unexpected error occurred"
+              : "An unexpected error occurred",
           ),
         };
       }
@@ -313,7 +313,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
     path: string,
     input: RouteHandlerInput,
     handler: RouteHandler<any, any, any, any>,
-    middlewares?: MiddlewareHandlers
+    middlewares?: MiddlewareHandlers,
   ) {
     // Create base context
     const baseCtx = this.createBaseContext(req, res);
@@ -331,7 +331,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
     // Execute middlewares
     const middlewareResult = await this.executeMiddlewares(
       ctxWithParsedInput,
-      middlewares
+      middlewares,
     );
     if (middlewareResult.error)
       return this.sendResponse(res, middlewareResult.error);
@@ -353,8 +353,8 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
           "INTERNAL_SERVER_ERROR",
           error instanceof Error
             ? error.message
-            : "An unexpected error occurred"
-        )
+            : "An unexpected error occurred",
+        ),
       );
     }
   }
@@ -369,7 +369,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
     path: string,
     input: Exact<TInput, RouteHandlerInput>,
     handler: RouteHandler<TPath, TInput, TMiddlewaresHandlers, TOutput>,
-    middlewares?: TMiddlewaresHandlers
+    middlewares?: TMiddlewaresHandlers,
   ): TypiRouter<
     TRoutes & {
       [key in TPath]: {
@@ -383,7 +383,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
     }
   > {
     this.router[method as HttpMethod](path, (req: Request, res: Response) =>
-      this.routeHandler(req, res, path, input, handler, middlewares)
+      this.routeHandler(req, res, path, input, handler, middlewares),
     );
     return this as any;
   }
@@ -405,7 +405,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
         TInput,
         TMiddlewaresHandlers,
         TOutput
-      >
+      >,
     ): TypiRouter<
       TRoutes & {
         [key in TPath]: {
@@ -424,7 +424,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
           path,
           input,
           handlerOrNothing,
-          middlewaresOrHandler as TMiddlewaresHandlers
+          middlewaresOrHandler as TMiddlewaresHandlers,
         );
       }
 
@@ -440,7 +440,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
           TMiddlewaresHandlers,
           TOutput
         >,
-        [] as unknown as TMiddlewaresHandlers
+        [] as unknown as TMiddlewaresHandlers,
       );
     };
   }
@@ -454,7 +454,7 @@ class TypiRouter<TRoutes extends RouteMap = RouteMap> {
   all = this.createHttpMethod("all");
   use<TPath extends string, TSubRoutes extends RouteMap>(
     path: TPath,
-    router: TypiRouter<TSubRoutes>
+    router: TypiRouter<TSubRoutes>,
   ): TypiRouter<
     TRoutes & {
       [key in TPath]: TypiRouter<TSubRoutes>;

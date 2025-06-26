@@ -125,6 +125,6 @@ export type HttpStatusCode = HttpSuccessStatusCode | HttpErrorStatusCode;
 
 export function getStatus(input: HttpStatusKey | HttpStatusCode) {
   return HttpStatus.find(
-    (status) => status.key === input || status.code === input
+    (status) => status.key === input || status.code === input,
   )!;
 }

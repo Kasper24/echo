@@ -140,7 +140,7 @@ const useMutatePrivacySettings = () => {
         (oldData: UpdateUserPrivacySettings) => ({
           ...oldData,
           ...newSettings,
-        })
+        }),
       );
       return { previousUserPrivacySettings };
     },
@@ -150,7 +150,7 @@ const useMutatePrivacySettings = () => {
     onError: (err, variables, context) => {
       queryClient.setQueryData(
         ["userPrivacySettings"],
-        context?.previousUserPrivacySettings
+        context?.previousUserPrivacySettings,
       );
       toast.error("Failed to update privacy settings. Please try again.");
     },
@@ -170,7 +170,7 @@ const SettingsDrawer = () => {
         side={isMobile ? "bottom" : "right"}
         className={cn(
           "flex flex-col w-full sm:max-w-md p-0 bg-card",
-          isMobile && "h-[90vh] rounded-t-xl"
+          isMobile && "h-[90vh] rounded-t-xl",
         )}
       >
         <Header />

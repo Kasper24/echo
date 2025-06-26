@@ -24,7 +24,7 @@ export default function RootLayout({
       <body
         className={cn(
           "font-sans antialiased bg-background text-foreground border-border",
-          inter.className
+          inter.className,
         )}
       >
         <QueryProvider>

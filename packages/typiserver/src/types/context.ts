@@ -27,11 +27,11 @@ export type RouteHandlerContext<
   success: {
     (): RouteHandlerResponse<"OK", {}>;
     <TData extends Record<string, any>>(
-      data: TData
+      data: TData,
     ): RouteHandlerResponse<"OK", TData>;
   };
   error: <TErrorKey extends HttpErrorStatusKey>(
     key: TErrorKey,
-    message?: string
+    message?: string,
   ) => RouteHandlerResponse<TErrorKey, RouteHandlerErrorDataResponse>;
 };

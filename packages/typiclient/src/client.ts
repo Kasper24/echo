@@ -28,7 +28,7 @@ export class TypiClient {
     path: string[],
     headers?: BaseHeaders,
     interceptors?: RequestInterceptors,
-    options?: ClientOptions
+    options?: ClientOptions,
   ) {
     this.baseUrl = baseUrl;
     this.path = path;
@@ -44,7 +44,7 @@ export class TypiClient {
             [...this.path, prop],
             this.baseHeaders,
             this.interceptors,
-            this.options
+            this.options,
           );
         }
       },
@@ -103,8 +103,8 @@ export class TypiClient {
             } else {
               return [name, valueOrFunction];
             }
-          }
-        )
+          },
+        ),
       );
 
       headers = { ...headers, ...Object.fromEntries(headerEntries) };
@@ -154,7 +154,7 @@ export class TypiClient {
   private async buildRequestConfig(
     method: HttpMethod,
     input: any,
-    options?: ClientOptions
+    options?: ClientOptions,
   ) {
     const hasBody = method !== "get" && method !== "head" && input?.body;
     const hasFiles = input?.body && this.hasFileData(input.body);
@@ -242,7 +242,7 @@ export class TypiClient {
   private async makeRequest(
     url: URL,
     config: RequestInit,
-    options?: ClientOptions
+    options?: ClientOptions,
   ): Promise<any> {
     try {
       const response = await fetch(url.toString(), config);
@@ -302,7 +302,7 @@ export class TypiClient {
     path: string,
     method: HttpMethod,
     input: any,
-    options?: ClientOptions
+    options?: ClientOptions,
   ) {
     const url = this.buildUrl(path, input);
     let config = await this.buildRequestConfig(method, input, options);
@@ -345,12 +345,12 @@ export function createTypiClient<
     [],
     baseHeaders,
     interceptors,
-    options
+    options,
   ) as TypiClientInstance<TRouter, TOptions>;
 }
 
 const isRouteHandlerResponse = (
-  result: any
+  result: any,
 ): result is RouteHandlerResponse => {
   return (
     result &&

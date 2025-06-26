@@ -11,7 +11,11 @@ const SettingsDrawerContext = createContext<
   SettingsDrawerContextType | undefined
 >(undefined);
 
-export const SettingsDrawerProvider = ({ children }: { children: React.ReactNode }) => {
+export const SettingsDrawerProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
@@ -25,7 +29,7 @@ export const useSettingsDrawer = () => {
   const context = useContext(SettingsDrawerContext);
   if (context === undefined) {
     throw new Error(
-      "useSettingsDrawer must be used within a SettingsDrawerProvider"
+      "useSettingsDrawer must be used within a SettingsDrawerProvider",
     );
   }
   return context;

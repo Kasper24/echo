@@ -28,7 +28,7 @@ export const friends = pgTable(
     status: friendStatusEnum().notNull().default("pending"),
     ...timeStamps(false),
   },
-  (table) => [primaryKey({ columns: [table.userA, table.userB] })]
+  (table) => [primaryKey({ columns: [table.userA, table.userB] })],
 );
 
 export const blockedUsers = pgTable("blocked_users", {

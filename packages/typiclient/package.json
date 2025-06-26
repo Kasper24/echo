@@ -22,7 +22,6 @@
   "scripts": {
     "build": "bunchee",
     "dev": "bunchee --watch",
-    "test": "jest",
     "lint:types": "tsc --noEmit",
     "lint:check": "eslint --max-warnings=0",
     "lint:fix": "eslint --fix"

@@ -12,7 +12,7 @@ const dbWaitForConnection = async (maxRetries = 5, delayMs = 2000) => {
       retries++;
       console.error(
         `❌ PostgreSQL connection error (attempt ${retries}):`,
-        err
+        err,
       );
 
       if (retries >= maxRetries) {

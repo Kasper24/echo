@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
     if (refreshTokenRequest.status === "OK") {
       const cookies = extractAndParseCookies(
         refreshTokenRequest.response.headers.getSetCookie().join("; "),
-        ["accessToken", "refreshToken"]
+        ["accessToken", "refreshToken"],
       );
       const response = NextResponse.next();
       cookies.forEach((cookie) => {

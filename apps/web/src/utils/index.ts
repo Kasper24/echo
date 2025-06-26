@@ -11,7 +11,7 @@ type Result<T, E = Error> = Success<T> | Failure<E>;
 const toCamelCase = (str: string): string => {
   return str
     .replace(/([-_][a-z])/gi, (match) =>
-      match.toUpperCase().replace("-", "").replace("_", "")
+      match.toUpperCase().replace("-", "").replace("_", ""),
     )
     .replace(/^[A-Z]/, (match) => match.toLowerCase());
 };
@@ -49,7 +49,7 @@ const convertStringToType = (value: string) => {
 const convertObjectKeysToCamelCaseAndConvertStringValuesToType = <
   T extends AnyObject,
 >(
-  obj: AnyObject
+  obj: AnyObject,
 ): T =>
   Object.entries(obj).reduce((acc, [key, value]) => {
     if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -63,7 +63,7 @@ const convertObjectKeysToCamelCaseAndConvertStringValuesToType = <
 
 const extractAndParseCookies = (
   cookieString: string,
-  cookieNames: string[]
+  cookieNames: string[],
 ) => {
   const cookies: ResponseCookie[] = [];
 
@@ -97,7 +97,7 @@ const extractAndParseCookies = (
       attributes.value = value;
 
       cookies.push(
-        convertObjectKeysToCamelCaseAndConvertStringValuesToType(attributes)
+        convertObjectKeysToCamelCaseAndConvertStringValuesToType(attributes),
       );
     }
   });
@@ -110,7 +110,7 @@ const isClientSide = () => {
 };
 
 const attempt = async <T, E = Error>(
-  fn: (() => T) | Promise<T>
+  fn: (() => T) | Promise<T>,
 ): Promise<Result<T, E>> => {
   try {
     const data = await (fn instanceof Promise
